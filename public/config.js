@@ -1,14 +1,11 @@
 // ============================================================================
 // Catering Control · Datos de ESTA empresa
 // ----------------------------------------------------------------------------
-// Este archivo NO es parte del código de React: es el único lugar que hay
-// que editar cuando se instala la app para una empresa nueva. Vive en
-// /public para que quede tal cual (sin "compilar") y cualquiera lo pueda
-// abrir con el Bloc de notas y cambiar estos valores, sin saber programar.
+
 // ============================================================================
 window.APP_CONFIG = {
   // Nombre que se muestra en toda la app (título, menú, etc.)
-  companyName: 'Catering Control',
+  companyName: 'InSHape',
 
   // Ruta o URL del logo. Puede ser un archivo en /public (ej. './logo.jpg')
   // o un link externo.
@@ -28,6 +25,6 @@ window.APP_CONFIG = {
   storagePrefix: 'catering-app',
 
   // Datos del proyecto de Supabase de ESTA empresa (Project Settings → API).
-  supabaseUrl: 'https://sucygrskajrcnwizrfpd.supabase.co',
-  supabaseKey: 'sb_publishable_yiChv91nKsuQVEPMd0t3Ng_hjpiurFD',
+  supabaseUrl: 'https://spvqcxomhkukwzijhvlm.supabase.co',
+  supabaseKey: 'sb_publishable_G_72gVehDgdJ73EFGZ-9yw_T-OS9hpY',
 };

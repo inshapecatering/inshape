@@ -3,7 +3,7 @@ import { dbGetAuditLog, dbGetAllAuditLog } from '../../../services/db';
 import { roleLabel } from '../../../services/panelAuth';
 import DataTable from '../DataTable';
 
-export default function AuditPage() {
+export default function AuditPage({ user }) {
   const [entries, setEntries] = useState(null); // null = todavía no se cargó nada
   const [showingAll, setShowingAll] = useState(false);
   const [loadingLog, setLoadingLog] = useState(false);
@@ -60,7 +60,7 @@ export default function AuditPage() {
             <span className="spacer" />
             <span className="muted">{list.length} eventos{showingAll ? ' (historial completo)' : ''}</span>
           </div>
-          <DataTable columns={columns} rows={list} getRowId={(e) => e.id} emptyText="No hay eventos registrados." />
+          <DataTable columns={columns} rows={list} getRowId={(e) => e.id} emptyText="No hay eventos registrados." resizeGroup="audit" userId={user?.id} />
         </>
       )}
     </section>

@@ -7,6 +7,8 @@ import { effectiveRouteId, effectiveOrder, effectiveAddress, dispatchStatus, myR
 import { canManageDelivery } from '../../../services/panelAuth';
 import Modal from '../Modal';
 import DataTable from '../DataTable';
+import RouteMapModal from './RouteMapModal';
+import ImageField from '../ImageField';
 
 // No requiere que el archivo se llame igual al original: esto reemplaza
 // deliveryCache + ensureDeliveryLoaded + saveDeliveryRecord, pero como
@@ -16,6 +18,7 @@ export default function DeliveryPage({ user }) {
   const [records, setRecords] = useState([]);
   const [marking, setMarking] = useState(null); // { client, kind }
   const [viewing, setViewing] = useState(null); // client (para el detalle)
+  const [mapRouteId, setMapRouteId] = useState(null);
   const [loadingRecords, setLoadingRecords] = useState(true);
   const pollRef = useRef(null);
 
@@ -60,13 +63,13 @@ export default function DeliveryPage({ user }) {
     return dbUpsertDeliveryRows([{ date, clientId, payload }]);
   }
 
-  async function handleMarkSubmit(form) {
+  async function handleMarkSubmit(form, photoUrl) {
     const { client, kind } = marking;
     if (dayInfo.processed) { showNotice('Ese día ya fue procesado y quedó congelado -- no se pueden marcar más entregas. Un admin/editor puede "Desprocesar día" desde Día de trabajo.', true); return false; }
     const data = Object.fromEntries(new FormData(form));
     const reason = (data.reason || '').trim();
     if (kind === 'no_entregado' && !reason) return false;
-    const payload = { status: kind, reason: kind === 'no_entregado' ? reason : '', note: (data.note || '').trim(), image: '', at: new Date().toISOString(), by: user?.name };
+    const payload = { status: kind, reason: kind === 'no_entregado' ? reason : '', note: (data.note || '').trim(), image: photoUrl || '', at: new Date().toISOString(), by: user?.name };
     const ok = await saveRecord(client.id, payload);
     dbInsertAudit({ actor_id: user.id, actor_name: user.name, actor_role: user.role, action: kind === 'no_entregado' ? 'Pedido marcado no entregado' : 'Pedido marcado entregado', entity_type: 'delivery', entity_label: client.name, entity_id: client.id, details: { fecha: date, motivo: payload.reason || undefined } });
     if (!ok) return false;
@@ -109,10 +112,23 @@ export default function DeliveryPage({ user }) {
       <section className="page active">
         <div className="page-head">
           <div><h1>Despacho</h1><p>{(myRoutes.length > 1 ? 'Tus rutas' : 'Tu ruta')}: {myRoutes.map(routeName).join(' + ') || 'Sin ruta'} — {date.split('-').reverse().join('/')}. Se actualiza sola cada pocos segundos.{dayInfo.processed && ' Este día ya fue procesado: quedó congelado.'}</p></div>
-          <div className="head-actions"><span className="badge active" style={{ fontSize: 14 }}>{delivered}/{list.length} entregados</span></div>
+          <div className="head-actions">
+            <span className="badge active" style={{ fontSize: 14 }}>{delivered}/{list.length} entregados</span>
+            {myRoutes.length > 0 && <button className="info" onClick={() => setMapRouteId(myRoutes[0])}>Ver mapa</button>}
+          </div>
         </div>
-        <DataTable columns={columns} rows={list} emptyText="No hay pedidos activos para esta fecha." />
+        <DataTable columns={columns} rows={list} emptyText="No hay pedidos activos para esta fecha." resizeGroup="delivery" userId={user?.id} />
         <MarkModal marking={marking} onClose={() => setMarking(null)} onSubmit={handleMarkSubmit} />
+        <RouteMapModal
+          open={mapRouteId != null}
+          onClose={() => setMapRouteId(null)}
+          routeId={mapRouteId}
+          routeName={routeName(mapRouteId)}
+          clients={mapRouteId ? listForRoutes(mapRouteId) : []}
+          date={date}
+          isDriverBroadcasting={isDriver}
+          driverDisplayName={user?.name}
+        />
       </section>
     );
   }
@@ -132,7 +148,11 @@ export default function DeliveryPage({ user }) {
           return (
             <details className="card card-pad delivery-route-card" key={g.route.id}>
               <summary className="delivery-route-head">
-                <div className="delivery-route-title"><h3>{g.route.name}</h3><span className="delivery-counter">{delivered}/{g.clients.length}</span></div>
+                <div className="delivery-route-title">
+                  <h3>{g.route.name}</h3>
+                  <span className="delivery-counter">{delivered}/{g.clients.length}</span>
+                  <button type="button" className="info" style={{ padding: '3px 10px', fontSize: 11.5, minHeight: 'auto' }} onClick={(e) => { e.preventDefault(); setMapRouteId(g.route.id); }}>Mapa</button>
+                </div>
               </summary>
               <div className="delivery-route-body">
                 <div className="delivery-route-driver">Driver: {drv ? `${drv.firstName} ${drv.lastName}` : 'Sin asignar'}</div>
@@ -152,6 +172,16 @@ export default function DeliveryPage({ user }) {
         }) : <p className="muted">No hay rutas con pedidos activos para esta fecha.</p>}
       </div>
       <MarkModal marking={marking} onClose={() => setMarking(null)} onSubmit={handleMarkSubmit} />
+      <RouteMapModal
+        open={mapRouteId != null}
+        onClose={() => setMapRouteId(null)}
+        routeId={mapRouteId}
+        routeName={routeName(mapRouteId)}
+        clients={mapRouteId ? listForRoutes(mapRouteId) : []}
+        date={date}
+        isDriverBroadcasting={false}
+        driverDisplayName={user?.name}
+      />
       {viewing && (
         <Modal title={`Detalle de entrega — ${viewing.name}`} open={!!viewing} onClose={() => setViewing(null)} hideSave>
           {(() => {
@@ -166,6 +196,7 @@ export default function DeliveryPage({ user }) {
                 </p>
                 {st === 'no_entregado' && rec?.reason && <p style={{ margin: 0 }}><b>Motivo:</b> {rec.reason}</p>}
                 {rec?.note && <p style={{ margin: 0 }}><b>Observación:</b> {rec.note}</p>}
+                {rec?.image && <img src={rec.image} alt="Foto de respaldo" className="delivery-detail-photo" />}
                 {canEdit && (
                   <div className="delivery-detail-actions">
                     {st === 'entregado' || st === 'no_entregado' ? (
@@ -185,17 +216,18 @@ export default function DeliveryPage({ user }) {
 }
 
 function MarkModal({ marking, onClose, onSubmit }) {
+  const [photoUrl, setPhotoUrl] = useState('');
   if (!marking) return null;
   const isFail = marking.kind === 'no_entregado';
   return (
-    <Modal title={`${isFail ? 'No entregado' : 'Entregado'} — ${marking.client.name}`} open={!!marking} onClose={onClose} onSubmit={onSubmit}>
+    <Modal title={`${isFail ? 'No entregado' : 'Entregado'} — ${marking.client.name}`} open={!!marking} onClose={onClose} onSubmit={(form) => onSubmit(form, photoUrl)}>
       <div className="form-grid">
         {isFail ? (
           <label className="wide">Motivo por el que no se entregó *<textarea name="reason" required rows="3" placeholder="Ej.: Cliente no se encontraba, dirección incorrecta…" /></label>
         ) : (
           <label className="wide">Observación (opcional)<textarea name="note" rows="2" placeholder="Ej.: Recibió un familiar, dejado en portería…" /></label>
         )}
-        <p className="muted wide" style={{ margin: 0, fontSize: 12 }}>La foto de respaldo queda pendiente para una próxima actualización — por ahora se guarda solo el motivo/observación.</p>
+        <ImageField label="Foto de respaldo (opcional)" name="_photo" value={photoUrl} onChange={setPhotoUrl} folder="delivery-proof" maxDim={700} />
       </div>
     </Modal>
   );

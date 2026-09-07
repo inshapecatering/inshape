@@ -4,6 +4,7 @@ import { dbInsertAudit } from '../../../services/supabaseClient';
 import { n } from '../../../services/planHelpers';
 import { effectiveRouteId, effectiveOrder, effectiveMaps, effectiveAddress, dispatchStatus, statusBadgeClass, myRouteIds } from '../../../services/dispatchHelpers';
 import { canManage, isPagePremiumLocked } from '../../../services/panelAuth';
+import { resolveShortMapsLinkIfNeeded } from '../../../services/resolveMapsLink';
 import Modal from '../Modal';
 import DataTable from '../DataTable';
 
@@ -139,12 +140,13 @@ export default function ClientsPage({ user }) {
     setSchedule(c?.schedule?.length ? c.schedule : []);
   }
 
-  function handleSubmit(form) {
+  async function handleSubmit(form) {
     const data = Object.fromEntries(new FormData(form));
     const items = {};
     menuItems.forEach(({ key }) => { items[key] = n(data[`item_${key}`]); delete data[`item_${key}`]; });
     if (data.status !== 'Programado') data.returnDate = '';
-    const finalAddresses = addresses.filter((a) => a.address.trim());
+    const resolvedAddresses = await Promise.all(addresses.filter((a) => a.address.trim()).map(resolveShortMapsLinkIfNeeded));
+    const finalAddresses = resolvedAddresses;
     const finalAddressIds = new Set(finalAddresses.map((a) => a.id));
     const finalSchedule = schedule.filter((row) => row.days.length && finalAddressIds.has(row.addressId));
     const isNew = !editing?.id;
@@ -210,7 +212,7 @@ export default function ClientsPage({ user }) {
         <span className="spacer" />
         <span className="muted">{list.length} clientes</span>
       </div>
-      <DataTable columns={columns} rows={list} emptyText="No hay clientes registrados." />
+      <DataTable columns={columns} rows={list} emptyText="No hay clientes registrados." resizeGroup="clients" userId={user?.id} />
 
       <Modal title={editing?.id ? 'Editar cliente' : 'Añadir cliente'} open={!!editing} onClose={() => setEditing(null)} onSubmit={handleSubmit}>
         {editing && (

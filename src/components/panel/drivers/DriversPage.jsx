@@ -106,7 +106,7 @@ export default function DriversPage({ user }) {
         {canEdit && <div className="head-actions"><button className="primary" onClick={() => openEdit(null)}>+ Añadir driver</button></div>}
       </div>
 
-      <DataTable columns={columns} rows={list} search={search} onSearchChange={setSearch} searchPlaceholder="Buscar driver…" emptyText="No hay drivers registrados." />
+      <DataTable columns={columns} rows={list} search={search} onSearchChange={setSearch} searchPlaceholder="Buscar driver…" emptyText="No hay drivers registrados." resizeGroup="drivers" userId={user?.id} />
 
       <Modal title={editing?.id ? 'Editar driver' : 'Añadir driver'} open={!!editing} onClose={() => setEditing(null)} onSubmit={handleSubmit}>
         <div className="form-grid">

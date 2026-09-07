@@ -65,7 +65,7 @@ function PanelShell({ user, branding, theme, onThemeChange, activePage, onNaviga
         {activePage === 'clients' && <ClientsPage user={user} />}
         {activePage === 'delivery' && <DeliveryPage user={user} />}
         {activePage === 'users' && <UsersPage user={user} />}
-        {activePage === 'audit' && <AuditPage />}
+        {activePage === 'audit' && <AuditPage user={user} />}
         {activePage === 'settings' && <SettingsPage user={user} theme={theme} onThemeChange={onThemeChange} />}
         {activePage === 'payroll' && <PayrollPage user={user} />}
         {activePage === 'inventory' && <InventoryPage user={user} />}
@@ -100,7 +100,7 @@ export default function PanelPage() {
       const freshBranding = await fetchBrandingRemote();
       if (freshBranding) setBranding(freshBranding);
 
-      joinPresence({ id: session.id, role: 'staff', name: session.name });
+      joinPresence({ id: session.id, role: session.role === 'driver' ? 'driver' : 'staff', name: session.name });
       setPhase('ready');
     })();
   }, [navigate]);

@@ -132,6 +132,10 @@ export async function dbInsertAudit(entry) {
 // --- Presencia en línea (quién está usando la app ahora mismo) --------
 let presenceChannel = null;
 
+export function presenceState() {
+  return presenceChannel ? presenceChannel.presenceState() : {};
+}
+
 export function joinPresence(info, onChange) {
   try {
     if (presenceChannel) return presenceChannel;
@@ -149,7 +153,7 @@ export function joinPresence(info, onChange) {
     presenceChannel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         try {
-          await presenceChannel.track({ role: info.role, name: info.name || '' });
+          await presenceChannel.track({ role: info.role, name: info.name || '', id: info.id || '', at: new Date().toISOString() });
         } catch (_) {
           /* ignorar: solo afecta el indicador visual de "en línea" */
         }

@@ -287,6 +287,16 @@
 .panel-shell .delivery-detail-photo { display: block; max-width: 100%; margin-top: 6px; border-radius: 10px; border: 1px solid var(--panel-line); }
 .panel-shell .delivery-detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
+.panel-shell dialog.map-modal { max-width: none; width: min(920px, 96vw); height: min(680px, 92vh); display: flex; flex-direction: column; }
+.panel-shell dialog.map-modal .modal-head button.outline { margin-left: auto; }
+.panel-shell .map-status { padding: 6px 16px; font-size: 12.5px; color: var(--panel-muted); border-bottom: 1px solid var(--panel-line); }
+.panel-shell .map-body { position: relative; flex: 1; min-height: 0; }
+.panel-shell .map-legend { padding: 6px 16px; font-size: 11.5px; color: var(--panel-muted); }
+.panel-shell .mc-pin { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; background: #0d6efd; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .35); transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; }
+.panel-shell .mc-pin span { transform: rotate(45deg); color: #fff; font-weight: 700; font-size: 12px; }
+.panel-shell .mc-pin.mc-pin-pending { background: #f97316; }
+.panel-shell .mc-driver-icon { font-size: 22px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4)); }
+
 .panel-shell .two-col { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 18px; align-items: start; }
 .panel-shell .metrics-split { grid-template-columns: 1.3fr .7fr; gap: 16px; margin-bottom: 16px; }
 .panel-shell .metrics-bar-row { display: flex; align-items: flex-end; gap: 10px; height: 140px; }

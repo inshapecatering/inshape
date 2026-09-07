@@ -9,6 +9,9 @@
 .panel-shell table { border-collapse: separate; border-spacing: 0; table-layout: fixed; width: max-content; min-width: 100%; }
 .panel-shell th, .panel-shell td { border-right: 1px solid var(--panel-line); border-bottom: 1px solid var(--panel-line); padding: 8px 10px; vertical-align: middle; width: 150px; }
 .panel-shell th { position: sticky; top: 0; z-index: 2; background: var(--panel-surface-2); text-align: left; font-size: 11px; letter-spacing: .02em; color: var(--panel-muted); text-transform: uppercase; }
+.panel-shell th { position: relative; }
+.panel-shell .col-resize-handle { position: absolute; top: 0; right: 0; width: 8px; height: 100%; cursor: col-resize; z-index: 3; }
+.panel-shell .col-resize-handle:hover { background: color-mix(in srgb, var(--panel-primary) 30%, transparent); }
 .panel-shell th:last-child, .panel-shell td:last-child { border-right: 0; }
 .panel-shell tbody tr:nth-child(even) td { background: var(--panel-surface-2); }
 .panel-shell tbody tr:hover td { background: color-mix(in srgb, var(--panel-primary) 4%, transparent); }

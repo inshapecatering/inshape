@@ -14,7 +14,7 @@ function writeStore(store) {
 export function getColumnPrefs(userId, group) {
   const store = readStore();
   const entry = store[userId || 'default']?.[group] || {};
-  return { hidden: entry.hidden || [], order: entry.order || [] };
+  return { hidden: entry.hidden || [], order: entry.order || [], widths: entry.widths || {} };
 }
 
 function updateGroup(userId, group, patch) {
@@ -30,6 +30,9 @@ export function saveHiddenColumns(userId, group, hidden) {
 }
 export function saveColumnOrder(userId, group, order) {
   updateGroup(userId, group, { order });
+}
+export function saveColumnWidths(userId, group, widths) {
+  updateGroup(userId, group, { widths });
 }
 
 // Aplica el orden guardado (si hay) a la lista de columnas por defecto,

@@ -66,7 +66,7 @@ export default function RoutesPage({ user }) {
         {canEdit && <div className="head-actions"><button className="primary" onClick={() => setEditing({})}>+ Crear ruta</button></div>}
       </div>
 
-      <DataTable columns={columns} rows={list} search={search} onSearchChange={setSearch} searchPlaceholder="Buscar ruta…" emptyText="No hay rutas registradas." />
+      <DataTable columns={columns} rows={list} search={search} onSearchChange={setSearch} searchPlaceholder="Buscar ruta…" emptyText="No hay rutas registradas." resizeGroup="routes" userId={user?.id} />
 
       <Modal title={editing?.id ? 'Editar ruta' : 'Crear ruta'} open={!!editing} onClose={() => setEditing(null)} onSubmit={handleSubmit}>
         <div className="form-grid">

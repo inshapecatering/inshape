@@ -124,12 +124,12 @@ export default function PlansPage({ user }) {
         )}
       </div>
 
-      <DataTable columns={planColumns} rows={plans} emptyText="No hay planes creados todavía." />
+      <DataTable columns={planColumns} rows={plans} emptyText="No hay planes creados todavía." resizeGroup="plans" userId={user?.id} />
 
       <div className="page-head" style={{ marginTop: 26 }}>
         <div><h1 style={{ fontSize: 19 }}>Artículos del menú</h1><p>Aparecen como columnas en Día de trabajo y en el portal del cliente.</p></div>
       </div>
-      <DataTable columns={itemColumns} rows={menuItems} getRowId={(m) => m.key} emptyText="No hay artículos definidos." />
+      <DataTable columns={itemColumns} rows={menuItems} getRowId={(m) => m.key} emptyText="No hay artículos definidos." resizeGroup="plan-items" userId={user?.id} />
 
       <Modal title={editingPlan?.id ? 'Editar plan' : 'Crear plan'} open={!!editingPlan} onClose={() => setEditingPlan(null)} onSubmit={handlePlanSubmit}>
         <div className="form-grid">

@@ -125,12 +125,12 @@ export default function InventoryPage({ user }) {
       <p className="muted" style={{ fontSize: 12, marginTop: -10, marginBottom: 14 }}>El descuento automático ya funciona al "Procesar día" desde Día de trabajo — acá también podés cargar movimientos a mano.</p>
 
       <div className="two-col">
-        <div className="card card-pad"><h3 style={{ marginBottom: 12 }}>Productos de cocina</h3><DataTable columns={itemColumns} rows={inventory.items} emptyText="No hay productos registrados." /></div>
-        <div className="card card-pad"><h3 style={{ marginBottom: 12 }}>Vínculos de consumo</h3><DataTable columns={linkColumns} rows={inventory.links} emptyText="No hay vínculos definidos." /></div>
+        <div className="card card-pad"><h3 style={{ marginBottom: 12 }}>Productos de cocina</h3><DataTable columns={itemColumns} rows={inventory.items} emptyText="No hay productos registrados." resizeGroup="inventory-items" userId={user?.id} /></div>
+        <div className="card card-pad"><h3 style={{ marginBottom: 12 }}>Vínculos de consumo</h3><DataTable columns={linkColumns} rows={inventory.links} emptyText="No hay vínculos definidos." resizeGroup="inventory-links" userId={user?.id} /></div>
       </div>
       <div className="card card-pad" style={{ marginTop: 18 }}>
         <h3 style={{ marginBottom: 12 }}>Últimos movimientos</h3>
-        <DataTable columns={movementColumns} rows={inventory.movements.slice(0, 12)} emptyText="Sin movimientos registrados." />
+        <DataTable columns={movementColumns} rows={inventory.movements.slice(0, 12)} emptyText="Sin movimientos registrados." resizeGroup="inventory-movements" userId={user?.id} />
       </div>
 
       <Modal title={editingItem?.id ? 'Editar producto' : 'Producto de cocina'} open={!!editingItem} onClose={() => setEditingItem(null)} onSubmit={handleItemSubmit}>

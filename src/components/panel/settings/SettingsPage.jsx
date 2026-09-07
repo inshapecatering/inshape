@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { n } from '../../../services/planHelpers';
 import config from '../../../services/config';
 import ImageField from '../ImageField';
+import { usePresence, ROLE_ICONS } from '../../../hooks/usePresence';
+import { dbGetAllAuditLog, dbGetAllDeliveryStatus, dbGetAllSnapshots, dbInsertAuditBulk, dbUpsertDeliveryRows, dbUpsertSnapshotsBulk } from '../../../services/db';
 
 const PREMIUM_LOCKABLE_PAGES = [
   ['notes', 'Notas'], ['payroll', 'Sueldos'], ['inventory', 'Inventario'], ['audit', 'Auditoría'],
@@ -15,10 +17,19 @@ function themeKey(userId) {
 }
 
 export default function SettingsPage({ user, theme, onThemeChange }) {
-  const { settings, saveSettings, serverToday } = useOperations();
+  const {
+    settings, saveSettings, serverToday, showNotice,
+    clients, notes, plans, days, drivers, routes, staffUsers, currentDate, inventory,
+    saveClients, saveNotes, saveDays,
+    saveDrivers: saveDrivers2, saveRoutes: saveRoutes2, savePlans: savePlans2, saveStaffUsers: saveStaffUsers2,
+  } = useOperations();
   const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = ['admin', 'superadmin'].includes(user?.role);
   const [premiumDays, setPremiumDays] = useState('');
+  const [exportScope, setExportScope] = useState('all');
+  const [working, setWorking] = useState(false);
+  const importInputRef = useRef(null);
+  const { counts, detail } = usePresence();
 
   function handleThemeChange(value) {
     localStorage.setItem(themeKey(user.id), value);
@@ -52,6 +63,84 @@ export default function SettingsPage({ user, theme, onThemeChange }) {
 
   const isPremium = settings.plan === 'premium';
   const daysLeft = isPremium && settings.premiumUntil ? Math.max(0, Math.ceil((new Date(settings.premiumUntil) - new Date(serverToday)) / 86400000)) : null;
+
+  function downloadJson(data, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  async function handleExport() {
+    if (exportScope !== 'all') {
+      const scopes = {
+        clientes: { data: { clients, plans, days, currentDate }, label: 'clientes' },
+        personal: { data: { drivers, routes, settings, staffUsers }, label: 'personal' },
+        inventario: { data: { inventory }, label: 'inventario' },
+      };
+      const chosen = scopes[exportScope];
+      downloadJson(chosen.data, `catering-${chosen.label}-${serverToday}.json`);
+      return;
+    }
+    setWorking(true);
+    showNotice('Preparando respaldo completo (incluye auditoría, despachos y snapshots de los últimos 2 años)…');
+    const cutoff = new Date(serverToday + 'T00:00:00');
+    cutoff.setFullYear(cutoff.getFullYear() - 2);
+    const cutoffDate = cutoff.toISOString().slice(0, 10);
+    const [auditLog, deliveryStatus, snapshots] = await Promise.all([
+      dbGetAllAuditLog(cutoffDate),
+      dbGetAllDeliveryStatus(cutoffDate),
+      dbGetAllSnapshots(cutoffDate),
+    ]);
+    const trimmedDays = Object.fromEntries(Object.entries(days || {}).filter(([d]) => d >= cutoffDate));
+    const data = { clients, plans, days: trimmedDays, currentDate, drivers, routes, settings, staffUsers, notes, inventory, auditLog: auditLog || [], deliveryStatus: deliveryStatus || [], snapshots: snapshots || [] };
+    downloadJson(data, `catering-respaldo-completo-${serverToday}.json`);
+    showNotice('Respaldo completo descargado (últimos 2 años).');
+    setWorking(false);
+  }
+
+  function handleImportFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      e.target.value = '';
+      let parsed;
+      try { parsed = JSON.parse(reader.result); } catch (_) { showNotice('El archivo no es un JSON válido.', true); return; }
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) { showNotice('El archivo no tiene el formato esperado.', true); return; }
+
+      const knownKeys = ['clients', 'plans', 'days', 'currentDate', 'drivers', 'routes', 'settings', 'inventory', 'notes'];
+      const foundKeys = knownKeys.filter((k) => k in parsed);
+      const hasStaffUsers = Array.isArray(parsed.staffUsers) && parsed.staffUsers.length > 0;
+      const hasAuditLog = Array.isArray(parsed.auditLog) && parsed.auditLog.length > 0;
+      const hasDeliveryStatus = Array.isArray(parsed.deliveryStatus) && parsed.deliveryStatus.length > 0;
+      const hasSnapshots = Array.isArray(parsed.snapshots) && parsed.snapshots.length > 0;
+      if (!foundKeys.length && !hasStaffUsers && !hasAuditLog && !hasDeliveryStatus && !hasSnapshots) { showNotice('El archivo no contiene datos reconocibles de Catering Control.', true); return; }
+
+      const resumen = [...foundKeys, ...(hasStaffUsers ? ['staffUsers'] : []), ...(hasAuditLog ? ['auditoría'] : []), ...(hasDeliveryStatus ? ['despachos'] : []), ...(hasSnapshots ? ['snapshots'] : [])].join(', ');
+      if (!confirm(`Vas a restaurar: ${resumen}.\n\nEsto reemplaza esos datos en este dispositivo y, al guardar, también en Supabase (para los demás dispositivos). ¿Continuar?`)) return;
+
+      setWorking(true);
+      if (Array.isArray(parsed.clients) && parsed.clients.length) saveClients(parsed.clients);
+      if (Array.isArray(parsed.notes) && parsed.notes.length) saveNotes(parsed.notes);
+      if (parsed.days) saveDays(parsed.days);
+      if (parsed.drivers) saveDrivers2(parsed.drivers);
+      if (parsed.routes) saveRoutes2(parsed.routes);
+      if (parsed.plans) savePlans2(parsed.plans);
+      if (parsed.settings) saveSettings({ ...settings, ...parsed.settings });
+      if (hasStaffUsers) saveStaffUsers2(parsed.staffUsers);
+      const [okAudit, okDelivery, okSnapshots] = await Promise.all([
+        hasAuditLog ? dbInsertAuditBulk(parsed.auditLog) : Promise.resolve(true),
+        hasDeliveryStatus ? dbUpsertDeliveryRows(parsed.deliveryStatus.map((d) => ({ date: d.date, clientId: d.clientId, payload: d.payload }))) : Promise.resolve(true),
+        hasSnapshots ? dbUpsertSnapshotsBulk(parsed.snapshots) : Promise.resolve(true),
+      ]);
+      setWorking(false);
+      const ok = okAudit && okDelivery && okSnapshots;
+      showNotice(ok ? 'Respaldo restaurado.' : 'Se restauró parcialmente: algo falló al guardar auditoría/despachos/snapshots.', !ok);
+    };
+    reader.readAsText(file);
+  }
 
   return (
     <section className="page active">
@@ -129,8 +218,49 @@ export default function SettingsPage({ user, theme, onThemeChange }) {
         )}
       </div>
 
+      <div className="two-col" style={{ marginTop: 18 }}>
+        <div className="card card-pad stack">
+          <h3>Conectados ahora</h3>
+          <div className="summary-grid" style={{ marginBottom: 4 }}>
+            <div className="card metric"><div className="muted" style={{ fontSize: 11 }}>Clientes</div><strong>{counts.cliente}</strong></div>
+            <div className="card metric"><div className="muted" style={{ fontSize: 11 }}>Drivers</div><strong>{counts.driver}</strong></div>
+            <div className="card metric"><div className="muted" style={{ fontSize: 11 }}>Personal</div><strong>{counts.staff}</strong></div>
+            <div className="card metric"><div className="muted" style={{ fontSize: 11 }}>Total</div><strong>{counts.total}</strong></div>
+          </div>
+          {detail.length ? (
+            <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+              {detail.map((m, i) => (
+                <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', alignItems: 'baseline', padding: '8px 4px', borderBottom: '1px solid var(--panel-line)' }}>
+                  <span style={{ minWidth: 90 }}>{ROLE_ICONS[m.role] || '●'} {m.role === 'cliente' ? 'Cliente' : m.role === 'driver' ? 'Driver' : 'Personal'}</span>
+                  <b style={{ minWidth: 120 }}>{m.name || '(sin nombre)'}</b>
+                  <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>{m.at ? `desde ${new Date(m.at).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+                </div>
+              ))}
+            </div>
+          ) : <p className="muted" style={{ marginTop: 8 }}>Nadie conectado ahora mismo.</p>}
+        </div>
+
+        {isAdmin && (
+          <div className="card card-pad stack">
+            <h3>Respaldo</h3>
+            <p className="muted">Descarga una copia de los datos, o restaura un respaldo guardado antes.</p>
+            <label>Qué exportar
+              <select value={exportScope} onChange={(e) => setExportScope(e.target.value)}>
+                <option value="all">Todo (incluye auditoría, despachos y snapshots de 2 años)</option>
+                <option value="clientes">Solo clientes/planes/calendario</option>
+                <option value="personal">Solo drivers/rutas/configuración/usuarios</option>
+                <option value="inventario">Solo inventario</option>
+              </select>
+            </label>
+            <button type="button" className="info" onClick={handleExport} disabled={working}>{working ? 'Preparando…' : 'Descargar respaldo (JSON)'}</button>
+            <button type="button" className="warning" onClick={() => importInputRef.current?.click()} disabled={working}>Restaurar desde un archivo</button>
+            <input ref={importInputRef} type="file" accept="application/json" hidden onChange={handleImportFile} />
+          </div>
+        )}
+      </div>
+
       <p className="muted" style={{ fontSize: 12.5, marginTop: 18 }}>
-        Pendiente para una próxima parte: personas conectadas ahora (con detalle de quién), exportar/importar respaldo en JSON.
+        Pendiente para una próxima parte: mapa con ruta real por calles y GPS en vivo del driver en Despacho, y foto de respaldo al marcar una entrega.
       </p>
     </section>
   );

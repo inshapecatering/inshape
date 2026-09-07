@@ -142,13 +142,13 @@ export default function UsersPage({ user }) {
         <div><h1>Usuarios y permisos</h1><p>Roles fijos: Administrador, Editor, Cocina y Driver, más los roles a medida que crees abajo.</p></div>
         <div className="head-actions"><button className="primary" onClick={() => setEditing({})}>+ Crear usuario</button></div>
       </div>
-      <DataTable columns={columns} rows={visibleUsers} emptyText="No hay usuarios registrados." />
+      <DataTable columns={columns} rows={visibleUsers} emptyText="No hay usuarios registrados." resizeGroup="users" userId={user?.id} />
 
       <div className="page-head" style={{ marginTop: 26 }}>
         <div><h1 style={{ fontSize: 19 }}>Roles a medida</h1><p>Elegí, página por página, qué puede ver y editar cada rol nuevo que crees.</p></div>
         <div className="head-actions"><button className="violet" onClick={() => setEditingRole({})}>+ Crear rol</button></div>
       </div>
-      <DataTable columns={roleColumns} rows={customRoles} emptyText="No hay roles a medida todavía — solo los 4 fijos." />
+      <DataTable columns={roleColumns} rows={customRoles} emptyText="No hay roles a medida todavía — solo los 4 fijos." resizeGroup="custom-roles" userId={user?.id} />
 
       <Modal title={editing?.id ? 'Editar usuario' : 'Crear usuario'} open={!!editing} onClose={() => setEditing(null)} onSubmit={handleSubmit}>
         {editing && <UserFormFields editing={editing} isSuperAdmin={isSuperAdmin} routes={routes} drivers={drivers} customRoles={customRoles} />}

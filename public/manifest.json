@@ -1,6 +1,6 @@
 {
-  "name": "Catering Control",
-  "short_name": "Catering",
+  "name": "InShape Catering",
+  "short_name": "InShape",
   "description": "Software de gestión integral para catering: operaciones, clientes y portal de autoservicio.",
   "start_url": "/",
   "scope": "/",

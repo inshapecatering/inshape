@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { dbGetSnapshot, dbUpsertSnapshot } from '../../../services/db';
 import { dbInsertAudit } from '../../../services/supabaseClient';
 import { n, addDays } from '../../../services/planHelpers';
-import { getColumnPrefs, saveHiddenColumns, saveColumnOrder, arrangeColumns } from '../../../services/columnPrefs';
+import { getColumnPrefs, saveHiddenColumns, saveColumnOrder, saveColumnWidths, arrangeColumns } from '../../../services/columnPrefs';
 import ColumnsModal from '../ColumnsModal';
 import { getDriverViewDate, setDriverViewDate } from '../../../services/driverViewDate';
 import {
@@ -465,6 +465,34 @@ export default function DispatchPage({ user }) {
   ];
   const columns = arrangeColumns(allColumns, colPrefs);
 
+  const resizeRef = useRef(null);
+  function startResize(e, key) {
+    e.preventDefault();
+    const th = e.currentTarget.parentElement;
+    const startX = e.clientX;
+    const startWidth = th.offsetWidth;
+    resizeRef.current = { key, startX, startWidth };
+    function onMove(ev) {
+      if (!resizeRef.current) return;
+      const delta = ev.clientX - resizeRef.current.startX;
+      const newWidth = Math.max(70, resizeRef.current.startWidth + delta);
+      th.style.width = `${newWidth}px`;
+    }
+    function onUp() {
+      if (resizeRef.current) {
+        const finalWidth = Math.max(70, th.offsetWidth);
+        const widths = { ...colPrefs.widths, [resizeRef.current.key]: finalWidth };
+        setColPrefs((p) => ({ ...p, widths }));
+        saveColumnWidths(user?.id, 'dispatch', widths);
+      }
+      resizeRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
+
   function handleSaveColumns(order, hiddenList) {
     setColPrefs({ order, hidden: hiddenList });
     saveColumnOrder(user?.id, 'dispatch', order);
@@ -563,7 +591,12 @@ export default function DispatchPage({ user }) {
 
       <div className="sheet">
         <table id="dispatch-table">
-          <thead><tr>{columns.map((c) => <th key={c.key}>{c.label}</th>)}</tr></thead>
+          <thead><tr>{columns.map((c) => (
+            <th key={c.key} style={colPrefs.widths?.[c.key] ? { width: colPrefs.widths[c.key] } : undefined}>
+              {c.label}
+              <span className="col-resize-handle" onMouseDown={(e) => startResize(e, c.key)} title="Arrastrar para cambiar el ancho" />
+            </th>
+          ))}</tr></thead>
           <tbody>
             {list.length ? list.map((c) => (
               <tr key={c.id}>{columns.map((col) => <td key={col.key}>{col.render(c)}</td>)}</tr>
