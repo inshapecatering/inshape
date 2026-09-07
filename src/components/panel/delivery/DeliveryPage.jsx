@@ -12,7 +12,7 @@ import DataTable from '../DataTable';
 // deliveryCache + ensureDeliveryLoaded + saveDeliveryRecord, pero como
 // estado de React en vez de variables sueltas.
 export default function DeliveryPage({ user }) {
-  const { clients, routes, drivers, days, currentDate, showNotice } = useOperations();
+  const { clients, routes, drivers, days, currentDate, settings, showNotice } = useOperations();
   const [records, setRecords] = useState([]);
   const [marking, setMarking] = useState(null); // { client, kind }
   const [viewing, setViewing] = useState(null); // client (para el detalle)
@@ -20,7 +20,7 @@ export default function DeliveryPage({ user }) {
   const pollRef = useRef(null);
 
   const isDriver = user?.role === 'driver';
-  const canEdit = canManageDelivery(user?.role);
+  const canEdit = canManageDelivery(user?.role, settings.customRoles);
   const date = currentDate;
   const dayInfo = days[date] || { laborable: true };
   const myRoutes = myRouteIds(user, drivers);

@@ -168,6 +168,14 @@ export function myRouteIds(user, drivers) {
   return found.length ? found : [user.routeId].filter(Boolean);
 }
 
+// La fecha más reciente que ya quedó "cerrada" (procesada). Se usa para
+// no dejar saltar la fecha de trabajo dejando días sin cerrar en el
+// medio, y para el cierre automático retroactivo de días salteados.
+export function lastProcessedDate(days) {
+  const dates = Object.keys(days).filter((d) => days[d]?.processed);
+  return dates.length ? dates.sort().at(-1) : null;
+}
+
 // Qué campos puede editar cada rol en la tabla de despacho.
 export function canEditDispatchField(client, field, date, { role, isDriver, myRoutes, realToday, canEditDispatch }) {
   if (field === 'returnDate' && client.status !== 'Programado') return false;

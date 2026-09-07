@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { rpc, dbInsertAudit } from '../../../services/supabaseClient';
 import { driverRouteIds } from '../../../services/dispatchHelpers';
-import { ROLE_LABELS, roleLabel } from '../../../services/panelAuth';
+import { ROLE_LABELS, ROLE_PAGE_OPTIONS, roleLabel, isBuiltinRole } from '../../../services/panelAuth';
 import Modal from '../Modal';
 import DataTable from '../DataTable';
 
@@ -11,9 +11,11 @@ function uid(prefix) {
 }
 
 export default function UsersPage({ user }) {
-  const { staffUsers, saveStaffUsers, drivers, saveDrivers, routes, showNotice, loading } = useOperations();
+  const { staffUsers, saveStaffUsers, drivers, saveDrivers, routes, settings, saveSettings, showNotice, loading } = useOperations();
   const [editing, setEditing] = useState(null);
+  const [editingRole, setEditingRole] = useState(null);
   const isSuperAdmin = user?.role === 'superadmin';
+  const customRoles = settings.customRoles || [];
 
   function routeName(id) { return routes.find((r) => r.id === id)?.name || 'Ruta abierta'; }
 
@@ -79,15 +81,56 @@ export default function UsersPage({ user }) {
     dbInsertAudit({ actor_id: user.id, actor_name: user.name, actor_role: user.role, action: 'Usuario eliminado', entity_type: 'user', entity_label: `${u.name} (${u.username})`, entity_id: u.id, details: {} });
   }
 
+  // --- Roles a medida ------------------------------------------------
+  function handleRoleSubmit(form) {
+    const label = form.elements.label.value.trim();
+    if (!label) { showNotice('El nombre del rol no puede estar vacío.', true); return false; }
+    const pages = {};
+    ROLE_PAGE_OPTIONS.forEach(([key, , editable]) => {
+      const view = !!form.elements[`view_${key}`]?.checked;
+      const edit = editable ? view && !!form.elements[`edit_${key}`]?.checked : false;
+      pages[key] = { view, edit };
+    });
+    const isNew = !editingRole?.id;
+    const updated = isNew
+      ? [...customRoles, { id: uid('role'), label, pages }]
+      : customRoles.map((r) => (r.id === editingRole.id ? { ...r, label, pages } : r));
+    saveSettings({ ...settings, customRoles: updated });
+    showNotice(isNew ? 'Rol creado.' : 'Rol actualizado.');
+    dbInsertAudit({ actor_id: user.id, actor_name: user.name, actor_role: user.role, action: isNew ? 'Rol creado' : 'Rol editado', entity_type: 'role', entity_label: label, entity_id: editingRole?.id || '', details: {} });
+  }
+
+  function handleRoleDelete(r) {
+    const inUse = staffUsers.filter((u) => u.role === r.id);
+    if (inUse.length) { showNotice(`No se puede eliminar: ${inUse.length} usuario(s) todavía tienen el rol "${r.label}". Cámbiales el rol primero.`, true); return; }
+    if (!confirm(`¿Eliminar el rol "${r.label}"?`)) return;
+    saveSettings({ ...settings, customRoles: customRoles.filter((x) => x.id !== r.id) });
+    showNotice('Rol eliminado.');
+    dbInsertAudit({ actor_id: user.id, actor_name: user.name, actor_role: user.role, action: 'Rol eliminado', entity_type: 'role', entity_label: r.label, entity_id: r.id, details: {} });
+  }
+
+  function roleSummary(r) {
+    const pages = ROLE_PAGE_OPTIONS.filter(([key]) => r.pages?.[key]?.view).map(([key, label, editable]) => (editable && r.pages[key].edit ? `${label} (editar)` : label));
+    return pages.length ? pages.join(', ') : 'Sin páginas asignadas';
+  }
+
   const visibleUsers = isSuperAdmin ? staffUsers : staffUsers.filter((u) => u.role !== 'superadmin');
   const columns = [
     { key: 'username', label: 'Usuario', render: (u) => <b>{u.username}</b> },
     { key: 'name', label: 'Nombre', render: (u) => u.name },
     { key: 'email', label: 'Correo', render: (u) => u.email || '—' },
-    { key: 'role', label: 'Rol', render: (u) => <span className="badge off">{roleLabel(u.role)}</span> },
+    { key: 'role', label: 'Rol', render: (u) => <span className={`badge ${isBuiltinRole(u.role) ? 'off' : 'violet-badge'}`}>{roleLabel(u.role, customRoles)}</span> },
     { key: 'route', label: 'Ruta asignada', render: (u) => u.role === 'driver' ? routeName(u.routeId) : '—' },
     { key: 'id', label: 'Acciones', render: (u) => (
       <><button className="icon-btn" onClick={() => setEditing(u)}>Editar</button>{u.id !== user.id && <button className="icon-btn delete" onClick={() => handleDelete(u)}>×</button>}</>
+    ) },
+  ];
+
+  const roleColumns = [
+    { key: 'label', label: 'Rol', render: (r) => <b>{r.label}</b> },
+    { key: 'summary', label: 'Acceso', render: (r) => <small className="muted">{roleSummary(r)}</small> },
+    { key: 'id', label: 'Acciones', render: (r) => (
+      <><button className="icon-btn" onClick={() => setEditingRole(r)}>Editar</button><button className="icon-btn delete" onClick={() => handleRoleDelete(r)}>×</button></>
     ) },
   ];
 
@@ -96,20 +139,29 @@ export default function UsersPage({ user }) {
   return (
     <section className="page active">
       <div className="page-head">
-        <div><h1>Usuarios y permisos</h1><p>Roles fijos: Administrador, Editor, Cocina y Driver.</p></div>
+        <div><h1>Usuarios y permisos</h1><p>Roles fijos: Administrador, Editor, Cocina y Driver, más los roles a medida que crees abajo.</p></div>
         <div className="head-actions"><button className="primary" onClick={() => setEditing({})}>+ Crear usuario</button></div>
       </div>
       <DataTable columns={columns} rows={visibleUsers} emptyText="No hay usuarios registrados." />
-      <p className="muted" style={{ fontSize: 12.5, marginTop: 14 }}>Los roles a medida (con permisos página por página) quedan pendientes para una próxima parte — por ahora solo se pueden usar los 4 roles fijos.</p>
+
+      <div className="page-head" style={{ marginTop: 26 }}>
+        <div><h1 style={{ fontSize: 19 }}>Roles a medida</h1><p>Elegí, página por página, qué puede ver y editar cada rol nuevo que crees.</p></div>
+        <div className="head-actions"><button className="violet" onClick={() => setEditingRole({})}>+ Crear rol</button></div>
+      </div>
+      <DataTable columns={roleColumns} rows={customRoles} emptyText="No hay roles a medida todavía — solo los 4 fijos." />
 
       <Modal title={editing?.id ? 'Editar usuario' : 'Crear usuario'} open={!!editing} onClose={() => setEditing(null)} onSubmit={handleSubmit}>
-        {editing && <UserFormFields editing={editing} isSuperAdmin={isSuperAdmin} routes={routes} drivers={drivers} />}
+        {editing && <UserFormFields editing={editing} isSuperAdmin={isSuperAdmin} routes={routes} drivers={drivers} customRoles={customRoles} />}
+      </Modal>
+
+      <Modal title={editingRole?.id ? 'Editar rol' : 'Crear rol'} open={!!editingRole} onClose={() => setEditingRole(null)} onSubmit={handleRoleSubmit}>
+        {editingRole && <RoleFormFields role={editingRole} />}
       </Modal>
     </section>
   );
 }
 
-function UserFormFields({ editing, isSuperAdmin, routes, drivers }) {
+function UserFormFields({ editing, isSuperAdmin, routes, drivers, customRoles }) {
   const [role, setRole] = useState(editing.role || 'driver');
   const d = editing.driverId ? drivers.find((x) => x.id === editing.driverId) || {} : {};
   const showDriver = role === 'driver';
@@ -127,6 +179,7 @@ function UserFormFields({ editing, isSuperAdmin, routes, drivers }) {
           <option value="editor">Editor</option>
           <option value="kitchen">Cocina</option>
           <option value="driver">Driver</option>
+          {customRoles.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
         </select>
         {isSuperAdmin && <small>Solo puede haber un Super Administrador.</small>}
       </label>
@@ -143,6 +196,29 @@ function UserFormFields({ editing, isSuperAdmin, routes, drivers }) {
         <label className="wide">Dirección de domicilio<input name="address" defaultValue={d.address} /></label>
       </>}
       {!showDriver && <p className="muted wide">Solo el rol Driver necesita ficha de driver y ruta asignada.</p>}
+    </div>
+  );
+}
+
+function RoleFormFields({ role }) {
+  const pages = role.pages || {};
+  return (
+    <div className="form-grid">
+      <label className="wide">Nombre del rol *<input name="label" required defaultValue={role.label} placeholder="Ej.: Supervisor de zona" /></label>
+      <div className="wide sheet">
+        <table>
+          <thead><tr><th>Página</th><th>Ver</th><th>Editar</th></tr></thead>
+          <tbody>
+            {ROLE_PAGE_OPTIONS.map(([key, label, editable]) => (
+              <tr key={key}>
+                <td>{label}</td>
+                <td><input type="checkbox" name={`view_${key}`} defaultChecked={!!pages[key]?.view} /></td>
+                <td>{editable ? <input type="checkbox" name={`edit_${key}`} defaultChecked={!!pages[key]?.edit} /> : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

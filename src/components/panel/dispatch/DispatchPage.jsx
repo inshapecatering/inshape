@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { dbGetSnapshot, dbUpsertSnapshot } from '../../../services/db';
 import { dbInsertAudit } from '../../../services/supabaseClient';
-import { n } from '../../../services/planHelpers';
+import { n, addDays } from '../../../services/planHelpers';
 import { getColumnPrefs, saveHiddenColumns, saveColumnOrder, arrangeColumns } from '../../../services/columnPrefs';
 import ColumnsModal from '../ColumnsModal';
+import { getDriverViewDate, setDriverViewDate } from '../../../services/driverViewDate';
 import {
   effectiveRouteId, effectiveAddress, effectiveOrder, effectiveNotes, effectiveMaps,
   effectiveDriverId, resolvedAddress, writeOrderValue, shiftOrdersFrom, dispatchStatus, statusBadgeClass,
-  myRouteIds, canEditDispatchField,
+  myRouteIds, canEditDispatchField, lastProcessedDate,
 } from '../../../services/dispatchHelpers';
 import { canManage } from '../../../services/panelAuth';
 import './DispatchPage.css';
@@ -25,10 +26,12 @@ export default function DispatchPage({ user }) {
   const [columnsOpen, setColumnsOpen] = useState(false);
   const [colPrefs, setColPrefs] = useState(() => getColumnPrefs(user?.id, 'dispatch'));
   const [orderConflict, setOrderConflict] = useState(null);
+  const [, setRerenderTick] = useState(0);
+  const forceRerender = () => setRerenderTick((v) => v + 1);
 
   const isDriver = user?.role === 'driver';
-  const canEdit = canManage(user?.role);
-  const date = currentDate;
+  const canEdit = canManage(user?.role, settings.customRoles, 'dispatch');
+  const date = isDriver ? (getDriverViewDate(user.id, serverToday) || currentDate) : currentDate;
   const dayInfo = days[date] || { laborable: true };
   const myRoutes = myRouteIds(user, drivers);
   const isPastProcessedDay = dayInfo.processed && date !== serverToday && !forceLive;
@@ -152,6 +155,30 @@ export default function DispatchPage({ user }) {
     });
   }
 
+  function handleWorkDateChange(newDate) {
+    if (isDriver) {
+      setDriverViewDate(user.id, newDate, serverToday);
+      setForceLive(false);
+      forceRerender();
+      return;
+    }
+    if (!canEdit) return;
+    const last = lastProcessedDate(days);
+    const maxAllowed = last ? addDays(last, 1) : null;
+    if (maxAllowed && newDate > maxAllowed) {
+      showNotice(`Primero hay que procesar ${last.split('-').reverse().join('/')} — no se puede saltar a ${newDate.split('-').reverse().join('/')} dejando días sin cerrar entre medio.`, true);
+      return;
+    }
+    setForceLive(false);
+    setCurrentDate(newDate);
+  }
+
+  function resetDriverViewToToday() {
+    setDriverViewDate(user.id, '', serverToday);
+    setForceLive(false);
+    forceRerender();
+  }
+
   function toggleDayLaborable(laborable) {
     if (!canEdit) return;
     saveDays({ ...days, [date]: { ...dayInfo, laborable } });
@@ -199,6 +226,7 @@ export default function DispatchPage({ user }) {
       await dbUpsertSnapshot(date, buildSnapshotPayload([]));
       showNotice('Día no laborable cerrado.');
       dbInsertAudit({ actor_id: user.id, actor_name: user.name, actor_role: user.role, action: 'Día cerrado (no laborable)', entity_type: 'day', entity_label: date, entity_id: date, details: {} });
+      setCurrentDate(addDays(date, 1));
       return;
     }
 
@@ -236,6 +264,7 @@ export default function DispatchPage({ user }) {
     dbInsertAudit({ actor_id: user.id, actor_name: user.name, actor_role: user.role, action: 'Día procesado', entity_type: 'day', entity_label: date, entity_id: date, details: { clientesAtendidos: processedIds.length } });
     downloadJsonBackup(payload, `dia-procesado-${date}.json`);
     exportProcessedDaySnapshot(payload).catch(() => {});
+    setCurrentDate(addDays(date, 1));
   }
 
   async function exportProcessedDaySnapshot(payload) {
@@ -502,7 +531,10 @@ export default function DispatchPage({ user }) {
 
       <div className="toolbar">
         <label className="field">Día de trabajo
-          <div className="date-input-wrap"><input type="date" value={date} onChange={(e) => canEdit && setCurrentDate(e.target.value)} disabled={!canEdit} /></div>
+          <div className="date-input-wrap">
+            <input type="date" value={date} onChange={(e) => handleWorkDateChange(e.target.value)} disabled={!canEdit && !isDriver} />
+            {isDriver && date !== serverToday && <button type="button" className="outline" onClick={resetDriverViewToToday} style={{ marginLeft: 6 }}>Hoy</button>}
+          </div>
         </label>
         {!isDriver && (
           <label className="field">Ruta

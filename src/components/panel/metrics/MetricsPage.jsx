@@ -52,6 +52,9 @@ export default function MetricsPage({ user }) {
   const [driverFilter, setDriverFilter] = useState('');
   const [metrics, setMetrics] = useState(null);
   const [computing, setComputing] = useState(false);
+  const [compareOn, setCompareOn] = useState(false);
+  const [compareRange, setCompareRange] = useState({ start: '', end: '' });
+  const [compareMetrics, setCompareMetrics] = useState(null);
   const canSetCost = isAdmin(user?.role);
 
   function routeName(id) { return routes.find((r) => r.id === id)?.name || 'Sin ruta'; }
@@ -62,9 +65,26 @@ export default function MetricsPage({ user }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preset]);
 
-  async function compute() {
-    setComputing(true);
-    const dates = dateRangeArray(range.start, range.end);
+  function toggleCompare(checked) {
+    setCompareOn(checked);
+    if (checked && (!compareRange.start || !compareRange.end)) {
+      // Por defecto, propone el periodo inmediatamente anterior de la
+      // misma duración -- ej. si el actual es "esta semana", el
+      // comparado arranca siendo "la semana pasada".
+      const days2 = dateRangeArray(range.start, range.end).length || 1;
+      const startDt = new Date(range.start + 'T00:00:00');
+      startDt.setDate(startDt.getDate() - days2);
+      const endDt = new Date(range.start + 'T00:00:00');
+      endDt.setDate(endDt.getDate() - 1);
+      setCompareRange({ start: startDt.toISOString().slice(0, 10), end: endDt.toISOString().slice(0, 10) });
+    }
+  }
+
+  // Toda la lógica de cálculo vive acá, como función pura -- así sirve
+  // tanto para el periodo actual como para el periodo de comparación,
+  // sin repetir el código dos veces.
+  async function computeRange(startDate, endDate) {
+    const dates = dateRangeArray(startDate, endDate);
     const recordsByDate = {};
     await Promise.all(dates.map(async (date) => { recordsByDate[date] = await dbGetDeliveryRows(date); }));
 
@@ -133,7 +153,7 @@ export default function MetricsPage({ user }) {
     const weeks = [];
     dates.forEach((date, i) => { const wi = Math.floor(i / 7); weeks[wi] ||= { label: `Semana ${wi + 1}`, count: 0 }; weeks[wi].count += dailyDelivered[date] || 0; });
 
-    setMetrics({
+    return {
       totalScheduled, totalCompleted, totalFailed,
       successRate: totalCompleted + totalFailed ? totalCompleted / (totalCompleted + totalFailed) : 0,
       pendingRate: totalScheduled ? Math.max(0, totalScheduled - totalCompleted - totalFailed) / totalScheduled : 0,
@@ -148,11 +168,18 @@ export default function MetricsPage({ user }) {
       driverRanking, routeRanking,
       fastestDriver: bySpeed[0] || null, slowestDriver: bySpeed.length ? bySpeed[bySpeed.length - 1] : null,
       weeklyTrend: weeks,
-    });
+    };
+  }
+
+  async function compute() {
+    setComputing(true);
+    setMetrics(await computeRange(range.start, range.end));
+    if (compareOn && compareRange.start && compareRange.end) setCompareMetrics(await computeRange(compareRange.start, compareRange.end));
+    else setCompareMetrics(null);
     setComputing(false);
   }
 
-  useEffect(() => { compute(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [range.start, range.end, routeFilter, driverFilter]);
+  useEffect(() => { compute(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [range.start, range.end, routeFilter, driverFilter, compareOn, compareRange.start, compareRange.end]);
 
   const maxWeek = metrics ? Math.max(1, ...metrics.weeklyTrend.map((w) => w.count)) : 1;
 
@@ -243,10 +270,23 @@ export default function MetricsPage({ user }) {
         <span className="spacer" />
         <button className="violet" onClick={exportMetrics} disabled={!metrics}>Exportar Excel</button>
       </div>
-      <p className="muted" style={{ fontSize: 12, marginTop: -6, marginBottom: 14 }}>Comparar dos periodos entre sí queda pendiente para una próxima parte.</p>
+      <div className="toolbar" style={{ marginTop: -8 }}>
+        <label className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, width: 'auto' }}>
+          <input type="checkbox" style={{ width: 'auto' }} checked={compareOn} onChange={(e) => toggleCompare(e.target.checked)} /> Comparar con otro periodo
+        </label>
+        {compareOn && (
+          <>
+            <label className="field">Comparar desde<div className="date-input-wrap"><input type="date" value={compareRange.start} onChange={(e) => setCompareRange({ ...compareRange, start: e.target.value })} /></div></label>
+            <label className="field">Comparar hasta<div className="date-input-wrap"><input type="date" value={compareRange.end} onChange={(e) => setCompareRange({ ...compareRange, end: e.target.value })} /></div></label>
+            <span className="muted" style={{ alignSelf: 'center', fontSize: 12 }}>Podés comparar cualquier día, semana o mes contra otro.</span>
+          </>
+        )}
+      </div>
+      <p className="muted" style={{ fontSize: 12, marginTop: -6, marginBottom: 14 }}>Los km son una estimación en línea recta entre direcciones.</p>
 
       {computing || !metrics ? <p className="muted">Calculando métricas del periodo…</p> : (
         <>
+          {compareOn && compareMetrics && <ComparisonCard current={metrics} previous={compareMetrics} range={range} compareRange={compareRange} />}
           <div className="summary-grid">
             {kpis.map(([label, val, sub]) => (
               <div className="card metric" key={label}>
@@ -300,5 +340,40 @@ export default function MetricsPage({ user }) {
         </>
       )}
     </section>
+  );
+}
+
+function ComparisonCard({ current, previous, range, compareRange }) {
+  function delta(x, y) {
+    if (isNaN(x) || isNaN(y) || !y) return <span className="muted">—</span>;
+    const d = ((x - y) / y) * 100;
+    if (Math.abs(d) < 1) return <span className="muted">≈ igual</span>;
+    return d > 0 ? <span style={{ color: '#087354' }}>▲ {d.toFixed(0)}%</span> : <span style={{ color: '#a3123a' }}>▼ {Math.abs(d).toFixed(0)}%</span>;
+  }
+  const rows = [
+    ['Entregas completadas', current.totalCompleted, previous.totalCompleted, current.totalCompleted, previous.totalCompleted],
+    ['% éxito', pct(current.successRate), pct(previous.successRate), current.successRate, previous.successRate],
+    ['Tiempo prom. por ruta (min)', Math.round(current.avgRouteMinutes), Math.round(previous.avgRouteMinutes)],
+    ['Km estimados (total)', current.totalKm.toFixed(1), previous.totalKm.toFixed(1)],
+    ['Costo estimado (Bs)', current.estCost.toFixed(2), previous.estCost.toFixed(2)],
+    ['Clientes prom. por ruta', current.avgClientsPerRoute.toFixed(1), previous.avgClientsPerRoute.toFixed(1)],
+  ];
+  return (
+    <div className="card card-pad" style={{ marginBottom: 16 }}>
+      <h3 style={{ margin: '0 0 6px', fontSize: 15 }}>Comparación de periodos</h3>
+      <p className="muted" style={{ margin: '0 0 10px', fontSize: 12 }}>
+        Actual: {range.start.split('-').reverse().join('/')} a {range.end.split('-').reverse().join('/')} · Comparado: {compareRange.start.split('-').reverse().join('/')} a {compareRange.end.split('-').reverse().join('/')}
+      </p>
+      <div className="sheet">
+        <table>
+          <thead><tr><th>KPI</th><th>Periodo actual</th><th>Periodo comparado</th><th>Variación</th></tr></thead>
+          <tbody>
+            {rows.map(([label, av, bv, rawA, rawB], i) => (
+              <tr key={i}><td>{label}</td><td>{av}</td><td>{bv}</td><td>{delta(rawA != null ? rawA : Number(av), rawB != null ? rawB : Number(bv))}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { dbGet, dbSet, dbGetClientRows, dbGetFields, dbSetFields, dbUpsertClientRows, dbDeleteClientRows, dbGetNoteRows, dbUpsertNoteRows, dbDeleteNoteRows } from '../services/db';
 import { rpc } from '../services/supabaseClient';
-import { DEFAULT_MENU_ITEMS } from '../services/planHelpers';
+import { DEFAULT_MENU_ITEMS, addDays } from '../services/planHelpers';
+import { lastProcessedDate } from '../services/dispatchHelpers';
 
 // "Operaciones" son los datos que casi todas las pantallas del Panel
 // necesitan al mismo tiempo: clientes, rutas, drivers, planes, el
@@ -82,6 +83,31 @@ export function OperationsProvider({ children, onThemeFromSettings }) {
     showNotice('No se pudo guardar: este dato todavía no se confirmó con la base de datos. Recargá la página e intentá de nuevo.', true);
   }, [showNotice]);
 
+  // Si el plan Premium venció, lo baja a Básico solo. Si el negocio se
+  // saltó días sin abrir la app, los cierra solos como "sin actividad"
+  // (sin tocar inventario ni días consumidos) para que lastProcessedDate()
+  // no quede atascada en el pasado bloqueando la fecha de trabajo.
+  function applyBackfillAndPremiumExpiry(daysIn, settingsIn, refDate) {
+    let settingsOut = settingsIn;
+    if (settingsIn.plan === 'premium' && settingsIn.premiumUntil && settingsIn.premiumUntil < refDate) {
+      settingsOut = { ...settingsIn, plan: 'basico', premiumUntil: '' };
+    }
+    let daysOut = daysIn;
+    const last = lastProcessedDate(daysIn);
+    if (last) {
+      let d = addDays(last, 1);
+      let changed = false;
+      const patched = { ...daysIn };
+      let guard = 0;
+      while (d < refDate && guard++ < 400) {
+        if (!patched[d]?.processed) { patched[d] = { ...(patched[d] || { laborable: true }), processed: true, processedClientIds: [] }; changed = true; }
+        d = addDays(d, 1);
+      }
+      if (changed) daysOut = patched;
+    }
+    return { settings: settingsOut, settingsChanged: settingsOut !== settingsIn, days: daysOut, daysChanged: daysOut !== daysIn };
+  }
+
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
@@ -103,9 +129,11 @@ export function OperationsProvider({ children, onThemeFromSettings }) {
       if (noteRows !== null) { setNotes(noteRows.map((nt) => ({ status: 'pendiente', dueDate: new Date().toISOString().slice(0, 10), source: 'staff', ...nt }))); notesConfirmed.current = true; }
       if (inventoryBlock !== null) { setInventory({ items: inventoryBlock?.items || [], links: inventoryBlock?.links || [], movements: inventoryBlock?.movements || [] }); confirmed.current.inventory = true; }
 
+      let days = clientesFields?.days || {};
+      let settingsNormalized = normalizeSettings(personalFields?.settings);
+
       if (clientesFields !== null) {
         setPlans(clientesFields.plans || []);
-        setDays(clientesFields.days || {});
         if (clientesFields.currentDate) setCurrentDateState(clientesFields.currentDate);
         confirmed.current.plans = true;
         confirmed.current.days = true;
@@ -115,7 +143,6 @@ export function OperationsProvider({ children, onThemeFromSettings }) {
       if (personalFields !== null) {
         setDrivers(personalFields.drivers || []);
         setRoutes(personalFields.routes?.length ? personalFields.routes : [{ id: 'r_open', name: 'Ruta abierta', description: 'Drivers disponibles sin ruta de trabajo', open: true, order: 0 }]);
-        setSettings(normalizeSettings(personalFields.settings));
         setStaffUsers(personalFields.staffUsers || []);
         if (personalFields.settings?.theme) onThemeFromSettings?.(personalFields.settings.theme);
         confirmed.current.drivers = true;
@@ -129,7 +156,22 @@ export function OperationsProvider({ children, onThemeFromSettings }) {
         setRoutes([{ id: 'r_open', name: 'Ruta abierta', description: 'Drivers disponibles sin ruta de trabajo', open: true, order: 0 }]);
       }
 
-      if (typeof srvDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(srvDate)) setServerToday(srvDate.slice(0, 10));
+      let refDate = null;
+      if (typeof srvDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(srvDate)) { refDate = srvDate.slice(0, 10); setServerToday(refDate); }
+
+      // El backfill/vencimiento de Premium solo se aplica si los dos
+      // bloques de los que depende (días y configuración) y la fecha del
+      // servidor se confirmaron -- si algo de eso falló, mejor no tocar
+      // nada a ciegas.
+      if (clientesFields !== null && personalFields !== null && refDate) {
+        const fixed = applyBackfillAndPremiumExpiry(days, settingsNormalized, refDate);
+        days = fixed.days;
+        settingsNormalized = fixed.settings;
+        if (fixed.daysChanged) dbSetFields('clientes', { days });
+        if (fixed.settingsChanged) dbSetFields('personal', { settings: settingsNormalized });
+      }
+      setDays(days);
+      setSettings(settingsNormalized);
 
       const anyFailed = clientRows === null || noteRows === null || inventoryBlock === null || clientesFields === null || personalFields === null;
       if (anyFailed) showNotice('No se pudo sincronizar todo con la base de datos. Algunos cambios no se guardarán hasta reconectar (recargá la página).', true);

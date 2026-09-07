@@ -1,3 +1,4 @@
+import { canManage } from '../../../services/panelAuth';
 import { useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { dbInsertAudit } from '../../../services/supabaseClient';
@@ -14,7 +15,7 @@ export default function RoutesPage({ user }) {
   const { routes, clients, drivers, saveRoutes, showNotice, loading } = useOperations();
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
-  const canEdit = ['admin', 'editor', 'superadmin'].includes(user?.role);
+  const canEdit = canManage(user?.role, settings.customRoles, 'routes');
 
   const q = search.toLowerCase();
   const list = routes.filter((r) => !q || [r.name, r.description].join(' ').toLowerCase().includes(q));

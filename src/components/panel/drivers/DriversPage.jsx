@@ -1,3 +1,4 @@
+import { canManage } from '../../../services/panelAuth';
 import { useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { dbInsertAudit } from '../../../services/supabaseClient';
@@ -15,7 +16,7 @@ export default function DriversPage({ user }) {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
   const [photoUrl, setPhotoUrl] = useState('');
-  const canEdit = ['admin', 'editor', 'superadmin'].includes(user?.role);
+  const canEdit = canManage(user?.role, settings.customRoles, 'drivers');
 
   function openEdit(d) {
     setEditing(d || {});

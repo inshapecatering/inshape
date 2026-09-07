@@ -246,6 +246,7 @@
 }
 .panel-shell .badge.warn { color: #8d5a02; background: #fff2d9; }
 .panel-shell .badge.pending { color: #7551ad; background: #eee5ff; }
+.panel-shell .badge.violet-badge { color: #6a3fc7; background: #eee5ff; }
 
 .panel-shell .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .panel-shell .note-card { background: var(--panel-surface); border: 1px solid var(--panel-line); border-left: 4px solid var(--panel-primary); border-radius: var(--panel-radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; }

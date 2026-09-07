@@ -1,3 +1,4 @@
+import { canManage } from '../../../services/panelAuth';
 import { useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { dbInsertAudit } from '../../../services/supabaseClient';
@@ -8,7 +9,7 @@ function uid(prefix) {
 }
 
 export default function NotesPage({ user }) {
-  const { notes, clients, currentDate, saveNotes, deleteNote, showNotice, loading } = useOperations();
+  const { notes, clients, currentDate, settings, saveNotes, deleteNote, showNotice, loading } = useOperations();
   const [filter, setFilter] = useState('today');
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null); // null=cerrado, {}=nueva, {...}=editar
@@ -64,7 +65,7 @@ export default function NotesPage({ user }) {
   }
 
   const emptyMsg = { today: 'No hay notas pendientes para hoy. 🎉', upcoming: 'No hay notas programadas a futuro.', history: 'Todavía no hay notas cumplidas.', all: 'No hay notas.' }[filter];
-  const canEdit = ['admin', 'editor', 'superadmin'].includes(user?.role);
+  const canEdit = canManage(user?.role, settings.customRoles, 'notes');
 
   if (loading) return <p className="muted">Cargando notas…</p>;
 

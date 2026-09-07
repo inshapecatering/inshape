@@ -1,3 +1,4 @@
+import { canManage } from '../../../services/panelAuth';
 import { useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { dbInsertAudit } from '../../../services/supabaseClient';
@@ -15,7 +16,7 @@ export default function PlansPage({ user }) {
   const [editingPlan, setEditingPlan] = useState(null);
   const [planPhoto, setPlanPhoto] = useState('');
   const [editingItem, setEditingItem] = useState(null);
-  const canEdit = ['admin', 'editor', 'superadmin'].includes(user?.role);
+  const canEdit = canManage(user?.role, settings.customRoles, 'plans');
   const menuItems = settings.menuItems || [];
 
   function openPlan(p) {

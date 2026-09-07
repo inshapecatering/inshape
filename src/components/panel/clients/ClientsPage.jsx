@@ -118,7 +118,7 @@ export default function ClientsPage({ user }) {
   const [addresses, setAddresses] = useState([]);
   const [activeAddressId, setActiveAddressId] = useState('');
   const [schedule, setSchedule] = useState([]);
-  const canEdit = canManage(user?.role);
+  const canEdit = canManage(user?.role, settings.customRoles, 'clients');
   const isDriver = user?.role === 'driver';
   const myRoutes = myRouteIds(user, drivers);
   const menuItems = settings.menuItems || [];

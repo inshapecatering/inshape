@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useOperations } from '../../../context/OperationsContext';
 import { dbInsertAudit } from '../../../services/supabaseClient';
 import { n } from '../../../services/planHelpers';
-import { canManage } from '../../../services/panelAuth';
+import { canManageInventory } from '../../../services/panelAuth';
 import Modal from '../Modal';
 import DataTable from '../DataTable';
 
@@ -16,7 +16,7 @@ export default function InventoryPage({ user }) {
   const [editingItem, setEditingItem] = useState(null);
   const [editingLink, setEditingLink] = useState(null);
   const [movementModal, setMovementModal] = useState(null); // 'entry' | 'use' | 'waste'
-  const canEdit = canManage(user?.role) || user?.role === 'kitchen';
+  const canEdit = canManageInventory(user?.role, settings.customRoles);
   const menuItems = settings.menuItems || [];
 
   function kitchenItem(id) { return inventory.items.find((i) => i.id === id); }
