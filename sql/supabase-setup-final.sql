@@ -454,9 +454,12 @@ begin
     return;
   end if;
 
-  select coalesce(payload -> 'staffUsers', '[]'::jsonb) into v_users from db_personal where db_personal.id = 'main';
+  -- staffUsers vive en su propia fila (id='staffUsers'), con el array
+  -- completo como payload -- NO anidado dentro de la fila 'main'.
+  select payload into v_users from db_personal where db_personal.id = 'staffUsers';
+  v_users := coalesce(v_users, '[]'::jsonb);
 
-  if v_users is null or jsonb_array_length(v_users) = 0 then
+  if jsonb_array_length(v_users) = 0 then
     if v_email = 'admin@catering.local' and p_password = 'admin123' then
       v_id := 'staff_admin'; v_name := 'Administrador'; v_role := 'admin'; v_routeId := ''; v_driverId := '';
     end if;
