@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Catering Control · Política de privacidad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="./icons/favicon-32.png" type="image/png">
+  <style>
+    :root { --brand:#3867f4; --text:#172033; --muted:#657188; --line:#dbe2ee; --font:Inter,ui-sans-serif,system-ui,sans-serif; --font-display:Figtree,ui-sans-serif,system-ui,sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:var(--font); color:var(--text); background:#f5f7fb; line-height:1.6; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 70px; }
+    .back { display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; margin-bottom:20px; }
+    .back:hover { color:var(--brand); }
+    h1 { font-family:var(--font-display); font-size:1.7rem; margin:0 0 4px; }
+    .updated { color:var(--muted); font-size:.85rem; margin-bottom:28px; }
+    h2 { font-family:var(--font-display); font-size:1.05rem; margin:28px 0 8px; }
+    p, li { color:#374156; font-size:.95rem; }
+    ul { padding-left: 20px; }
+    table { width:100%; border-collapse:collapse; margin: 10px 0 6px; font-size:.88rem; }
+    th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:var(--muted); font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.02em; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px 30px; }
+    .contact { margin-top: 28px; padding-top: 18px; border-top:1px solid var(--line); font-size:.85rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="./index.html">&larr; Volver al inicio de sesión</a>
+    <div class="card">
+      <h1>Política de privacidad</h1>
+      <p class="updated">Última actualización: <span id="updated-date"></span></p>
+
+      <p><b>Catering Control</b> es el software que usa la empresa de catering que te dio acceso a esta cuenta
+      para gestionar sus operaciones. Esta página explica qué datos guarda la plataforma y cómo se manejan.</p>
+
+      <h2>1. Qué datos se guardan</h2>
+      <table>
+        <tr><th>Quién</th><th>Qué se guarda</th></tr>
+        <tr><td>Clientes del servicio de catering</td><td>Nombre, carnet, teléfono(s), dirección(es) de entrega, plan contratado y notas del pedido</td></tr>
+        <tr><td>Personal (staff)</td><td>Nombre, correo, rol dentro del equipo</td></tr>
+        <tr><td>Drivers</td><td>Nombre, carnet, teléfono, dirección, y foto de perfil (opcional)</td></tr>
+      </table>
+
+      <h2>2. Fotos</h2>
+      <p>La plataforma puede generar dos tipos de imágenes:</p>
+      <ul>
+        <li><b>Foto de respaldo de una entrega</b> (opcional, la sube quien reparte): sirve para resolver un
+        reclamo puntual sobre un pedido. Se borra automáticamente a los <b>7 días</b>.</li>
+        <li><b>Comprobante de pago</b> (cuando un cliente renueva su plan desde el portal): se usa para
+        verificar el pago. Se borra automáticamente a los <b>7 días</b>.</li>
+      </ul>
+      <p>Estas imágenes se guardan con un nombre de archivo único generado al azar (no un listado público ni
+      buscable), y solo se accede a ellas desde dentro de la plataforma mientras están vigentes.</p>
+
+      <h2>3. Cómo se usan los datos</h2>
+      <p>Los datos se usan exclusivamente para operar el servicio de catering: armar rutas de reparto, calcular
+      los días de plan consumidos, y que el personal y los drivers sepan qué y a quién entregar. No se venden
+      ni se comparten con terceros ajenos a la empresa que administra tu cuenta.</p>
+
+      <h2>4. Dónde se guardan</h2>
+      <p>Los datos se almacenan en una base de datos con controles de acceso por usuario y por rol: cada
+      sesión requiere un inicio de sesión válido, y el acceso a la información de una empresa está separado del
+      de las demás empresas que usan la misma plataforma.</p>
+
+      <h2>5. Cuánto tiempo se conservan</h2>
+      <p>Los registros operativos (clientes, planes, historial de entregas) se conservan mientras la cuenta de
+      la empresa esté activa. Las imágenes de respaldo y los comprobantes de pago se conservan solo 7 días,
+      como se explica arriba.</p>
+
+      <h2>6. Tus derechos</h2>
+      <p>Si querés consultar, corregir o pedir que se elimine tu información personal, comunicate directamente
+      con la empresa de catering que administra tu cuenta — son quienes tienen control directo sobre esos
+      datos dentro de la plataforma.</p>
+
+      <h2>7. Cambios a esta política</h2>
+      <p>Esta política puede actualizarse. Los cambios relevantes se reflejarán en la fecha de "Última
+      actualización" de esta página.</p>
+
+      <div class="contact">¿Preguntas sobre esta política? Contactá a la empresa que te dio acceso a esta cuenta, o a quien te haya provisto la plataforma.</div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('updated-date').textContent = new Date().toLocaleDateString('es-BO', { year: 'numeric', month: 'long', day: 'numeric' });
+  </script>
+</body>
+</html>

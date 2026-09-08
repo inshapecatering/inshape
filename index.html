@@ -89,6 +89,22 @@
     [data-theme="forest"] .card { background:#eef7ee; }
     [data-theme="forest"] .bg-body-tertiary { background:#cde6cd!important; }
     #whatsapp-support-btn:hover { background:#20bd5a!important; color:#fff; }
+
+    /* Footer legal: a propósito FUERA del árbol de React (todo lo de
+       arriba se arma con React.createElement a mano, sin JSX ni build —
+       tocar esto acá es más simple y no depende de que React/Supabase
+       carguen). Siempre muestra el nombre del SOFTWARE (Catering
+       Control), nunca el de la empresa que lo usa (ese es el que trae
+       config.js vía APP_CONFIG.companyName, y varía por cliente) — para
+       eso están brand-row/brand-info más arriba en la tarjeta de login. */
+    .app-footer { margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(0,0,0,.08); text-align: center; }
+    [data-theme="night"] .app-footer { border-top-color: rgba(255,255,255,.1); }
+    .app-footer-brand { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 700; font-size: .85rem; }
+    .app-footer-badge { display: inline-flex; align-items: center; gap: 3px; font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--brand); }
+    .app-footer-links { margin-top: 6px; font-size: .78rem; }
+    .app-footer-links a { color: inherit; text-decoration: none; }
+    .app-footer-links a:hover { text-decoration: underline; color: var(--brand); }
+    .app-footer-copy { margin-top: 3px; font-size: .72rem; }
   </style>
 </head>
 <body class="d-flex align-items-center py-4">
@@ -98,7 +114,27 @@
         <div id="root"></div>
       </div>
     </div>
+    <div class="row justify-content-center">
+      <div class="col-12 login-card">
+        <footer class="app-footer text-secondary">
+          <div class="app-footer-brand">
+            <span>Catering Control</span>
+            <span class="app-footer-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 2.4 3.4-.4.4 3.4L21 10l-2.8 2.6.4 3.4-3.4-.4L12 18l-2.4-2.4-3.4.4-.4-3.4L3 10l2.8-2.6-.4-3.4 3.4.4z"/><path d="M9.8 12.2l1.6 1.6 3-3.4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Software verificado
+            </span>
+          </div>
+          <div class="app-footer-links">
+            <a href="./terminos.html">Términos y condiciones</a>
+            <span aria-hidden="true"> · </span>
+            <a href="./privacidad.html">Política de privacidad</a>
+          </div>
+          <div class="app-footer-copy">© <span id="footer-year"></span> Catering Control. Todos los derechos reservados.</div>
+        </footer>
+      </div>
+    </div>
   </main>
+  <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
 
   <script>
 function boot() {

@@ -2872,6 +2872,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if(ui.page==='notes') renderNotes();
         if(!saved) console.warn('No se pudo guardar la limpieza de comprobantes vencidos.');
       }
+      // Igual que cleanupOldProofImages pero para las fotos de respaldo que
+      // suben admin/editor/driver al marcar una entrega (folder 'delivery').
+      // Esas fotos no se reemplazan solas como el logo o el QR -- si nadie
+      // las borra a mano, se quedan para siempre en Storage. Revisa TODAS
+      // las fechas (no solo el día en pantalla), por eso usa
+      // dbGetAllDeliveryStatus en vez de deliveryCache (que solo tiene
+      // cargadas las fechas que el usuario fue abriendo).
+      async function cleanupOldDeliveryPhotos(){
+        if(!canEditPage('dispatch')) return;
+        const PHOTO_MAX_AGE_MS=7*24*60*60*1000;
+        const now=Date.now();
+        let rows;
+        try{ rows = await window.SupabaseDB?.dbGetAllDeliveryStatus(null); }catch(_){ return; }
+        if(!Array.isArray(rows) || !rows.length) return;
+        const stale=rows.filter(r=>{
+          const img=r.payload?.image;
+          if(!img) return false;
+          const at=r.payload?.at;
+          if(!at) return false;
+          const age=now-new Date(at).getTime();
+          return Number.isFinite(age) && age>PHOTO_MAX_AGE_MS;
+        });
+        if(!stale.length) return;
+        const upserts=[];
+        for(const r of stale){
+          try{ await removeStorageImageByUrl(r.payload.image); }catch(_){}
+          const payload={...r.payload, image:''};
+          upserts.push({date:r.date, clientId:r.clientId, payload});
+          const cached=deliveryCache[r.date];
+          if(cached){
+            const idx=cached.findIndex(x=>x.clientId===r.clientId);
+            if(idx>=0) cached[idx]={clientId:r.clientId, ...payload};
+          }
+        }
+        const ok=await window.SupabaseDB?.dbUpsertDeliveryRows(upserts);
+        if(ui.page==='delivery') renderDelivery();
+        if(!ok) console.warn('No se pudo guardar la limpieza de fotos de entrega vencidas.');
+      }
       function renderNotes(){
         if(!canAccessPage('notes')) return;
         if(pageNeedsPremium('notes')){ $('#notes-page').innerHTML=pageHead('Notas','Recordatorios internos y mensajes que dejan los clientes desde su portal.')+premiumLockHtml('Notas'); return; }
@@ -4184,7 +4222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try{ await window.SupabaseDB?.revokeSession(); }catch(_){}
         sessionStorage.removeItem(STAFF_SESSION_KEY);
         location.href='./index.html';
-      };$('#manual-sync-btn').onclick=async()=>{const synced=await loadFromServer();const sd=await serverToday();normalize(sd);deliveryCache={};render();applyBranding();cleanupOldProofImages();notice(synced?'Datos sincronizados con el servidor.':'No se pudo leer la base de datos.',!synced);};$('#import-file').onchange=e=>{
+      };$('#manual-sync-btn').onclick=async()=>{const synced=await loadFromServer();const sd=await serverToday();normalize(sd);deliveryCache={};render();applyBranding();cleanupOldProofImages();cleanupOldDeliveryPhotos();notice(synced?'Datos sincronizados con el servidor.':'No se pudo leer la base de datos.',!synced);};$('#import-file').onchange=e=>{
         const file=e.target.files[0];if(!file)return;
         const r=new FileReader();
         r.onload=async()=>{
@@ -4224,7 +4262,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try { activeUser=JSON.parse(sessionStorage.getItem(STAFF_SESSION_KEY)); } catch (_) { activeUser=null; }
         window.SupabaseDB?.setSessionToken(activeUser?.sessionToken || null, 'staff');
       if(!activeUser){ window.location.replace('./index.html'); return; }
-      load(); applyBranding(); initialServerLoadPromise=loadFromServer().then(async () => { const sd=await serverToday(); normalize(sd); render(); applyBranding(); cleanupOldProofImages(); }); render(); activate(isDriverRole()?'delivery':'dispatch');
+      load(); applyBranding(); initialServerLoadPromise=loadFromServer().then(async () => { const sd=await serverToday(); normalize(sd); render(); applyBranding(); cleanupOldProofImages(); cleanupOldDeliveryPhotos(); }); render(); activate(isDriverRole()?'delivery':'dispatch');
       window.SupabaseDB?.joinPresence({id:activeUser.id, role:isDriverRole()?'driver':'staff', name:activeUser.name}, st=>{
         presenceCounts=computePresenceCounts(st);
         const box=document.getElementById('presence-counts');
