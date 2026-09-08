@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Catering Control · Mi plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+  <script src="./config.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin defer></script>
+  <script src="./app.js" defer></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin defer></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin defer></script>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#3867f4">
+  <link rel="icon" href="./icons/favicon-32.png" type="image/png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Catering">
+
+  <style>
+    
+    :root{--font:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-display:Figtree,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--bs-primary:#3867f4;--bs-primary-rgb:56,103,244;--bs-link-color:#3867f4;--bs-link-color-rgb:56,103,244;--bs-link-hover-color:#2a52d6;--bs-link-hover-color-rgb:42,82,214}
+    body{background:var(--page-bg,#f5f7fb);font-family:var(--font)}
+    h1,h2,h3,.btn{font-family:var(--font-display)}
+    .portal{max-width:1080px}.portal .card{border-radius:1rem}.brand-image{width:42px;height:42px;object-fit:contain}.hero{background:linear-gradient(115deg,#3867f4,#15a77f);color:#fff}.metric{background:var(--bs-tertiary-bg);border-radius:1rem}.client-avatar{width:52px;height:52px;background:rgba(255,255,255,.2)}.instagram{background:linear-gradient(125deg,#833ab4,#fd1d1d,#fcb045);color:#fff;text-decoration:none}.btn-whatsapp{background:#25D366!important;border-color:transparent!important;color:#fff!important;font-weight:650}.btn-whatsapp:hover{background:#20bd5a!important;color:#fff!important}a.link-whatsapp{color:#1da851;font-weight:650;text-decoration:none}a.link-whatsapp:hover{color:#178a42;text-decoration:underline}.hidden{display:none!important}
+    .pause-mode-card{border-radius:1rem;cursor:pointer;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
+    .btn-check:checked+.pause-mode-card{border-color:var(--bs-primary)!important;background:color-mix(in srgb,var(--bs-primary) 8%,var(--bs-body-bg));box-shadow:0 0 0 2px color-mix(in srgb,var(--bs-primary) 25%,transparent)}
+    .pause-mode-card:hover{border-color:color-mix(in srgb,var(--bs-primary) 45%,var(--bs-border-color))}
+    [data-theme="night"]{--page-bg:#121824}
+    [data-theme="forest"]{--page-bg:#dcefdc}
+    [data-theme="forest"] .metric{background:#cde6cd}
+    [data-theme="forest"] .navbar.bg-body{background:#eef7ee!important}
+    .ad-banner img{width:100%;height:auto;display:block}
+    .renewal-banner{background:linear-gradient(120deg,#e4002b,#ff4b3e);color:#fff;overflow:hidden;position:relative}
+    .renewal-banner .ribbon{background:rgba(255,255,255,.18);border-radius:999px;display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .75rem;font-weight:700;letter-spacing:.02em}
+    .renewal-banner .bounce{display:inline-block;animation:renewal-bounce 1.4s ease-in-out infinite}
+    .renewal-banner .btn-light{font-weight:700}
+    @keyframes renewal-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+    .client-logout-btn{
+      position:fixed;
+      top:14px;
+      right:14px;
+      z-index:1050;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:none;
+      border-radius:999px;
+      padding:11px 18px;
+      font:650 14.5px/1 var(--font-display);
+      color:#fff;
+      background:linear-gradient(135deg,color-mix(in srgb,#e4002b 78%,white 22%),#e4002b);
+      box-shadow:0 4px 14px color-mix(in srgb,#e4002b 38%,transparent),0 2px 6px rgba(0,0,0,.12);
+      cursor:pointer;
+      transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
+    }
+    .client-logout-btn:hover{transform:translateY(-2px);filter:brightness(.97);box-shadow:0 8px 22px color-mix(in srgb,#e4002b 42%,transparent),0 3px 8px rgba(0,0,0,.14)}
+    .client-logout-btn:active{transform:translateY(0) scale(.97)}
+    .client-logout-btn svg{flex:0 0 auto;display:block}
+    @media (max-width:480px){.client-logout-btn{top:10px;right:10px;padding:10px 14px}}
+    [data-theme="night"] .client-logout-btn{background:linear-gradient(135deg,color-mix(in srgb,#ff4d4d 78%,white 22%),#ff4d4d);box-shadow:0 4px 14px color-mix(in srgb,#ff4d4d 38%,transparent),0 2px 6px rgba(0,0,0,.12)}
+    [data-theme="night"] .client-logout-btn:hover{box-shadow:0 8px 22px color-mix(in srgb,#ff4d4d 42%,transparent),0 3px 8px rgba(0,0,0,.14)}
+    [data-theme="forest"] .client-logout-btn{background:linear-gradient(135deg,color-mix(in srgb,#b3001f 78%,white 22%),#b3001f);box-shadow:0 4px 14px color-mix(in srgb,#b3001f 38%,transparent),0 2px 6px rgba(0,0,0,.12)}
+    [data-theme="forest"] .client-logout-btn:hover{box-shadow:0 8px 22px color-mix(in srgb,#b3001f 42%,transparent),0 3px 8px rgba(0,0,0,.14)}
+    main.portal{padding-top:66px}
+    @media (max-width:480px){main.portal{padding-top:60px}}
+    .portal .btn{border-radius:999px;font-weight:650;box-shadow:0 3px 10px rgba(0,0,0,.08);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+    .portal .btn:hover{transform:translateY(-2px);filter:brightness(1.03)}
+    .portal .btn:active{transform:translateY(0) scale(.98)}
+    .portal .btn-primary{background:linear-gradient(135deg,color-mix(in srgb,#3867f4 78%,white 22%),#3867f4);border-color:transparent;box-shadow:0 4px 14px rgba(56,103,244,.35)}
+    .portal .btn-primary:hover{box-shadow:0 8px 22px rgba(13,110,253,.4)}
+    .portal .btn-success{background:linear-gradient(135deg,color-mix(in srgb,#15a77f 78%,white 22%),#15a77f);border-color:transparent;box-shadow:0 4px 14px rgba(21,167,127,.32)}
+    .portal .btn-success:hover{box-shadow:0 8px 22px rgba(25,135,84,.38)}
+    .premium-lock{max-width:460px;margin:40px auto;padding:28px 24px;text-align:center;border-radius:1rem;color:#fff;background:linear-gradient(120deg,#e4002b,#ff4b3e);box-shadow:0 10px 30px rgba(228,0,43,.25)}
+    .premium-lock .premium-lock-icon{font-size:32px;margin-bottom:8px}
+    .premium-lock h2{font-size:18px;margin:0 0 8px}
+    .premium-lock p{margin:0 0 16px;opacity:.95;font-size:14px}
+    .btn-premium{display:inline-block;background:#fff;color:#e4002b;font-weight:700;padding:10px 18px;border-radius:999px;text-decoration:none}
+    .btn-premium:hover{filter:brightness(.95)}
+  </style>
+</head>
+<body>
+  <main class="container portal py-3 py-md-4" id="portal-root"></main>
+
+  <script>
+function boot() {
+    const { useState, useEffect, useRef, useMemo } = React;
+    const APP_CONFIG = window.APP_CONFIG;
+    const OPERATIONS_KEY = `${APP_CONFIG.storagePrefix}-operaciones-v3`;
+    const CLIENT_ROW_KEY = `${APP_CONFIG.storagePrefix}-client-row-v1`;
+    const CLIENT_SESSION_KEY = `${APP_CONFIG.storagePrefix}-client-session-v1`;
+    const THEME_KEY = `${APP_CONFIG.storagePrefix}-client-theme-v1`;
+    const CLIENT_THEME_STORE_KEY = `${APP_CONFIG.storagePrefix}-client-theme-store-v1`;
+    const BRANDING_KEY = `${APP_CONFIG.storagePrefix}-client-branding-v1`;
+    const DEFAULT_ITEMS = [['shots', 'Shots'], ['proteins', 'Proteínas'], ['juices', 'Jugos'], ['breakfast', 'Desayuno'], ['snack1', 'Merienda 1'], ['lunch', 'Almuerzo'], ['snack2', 'Merienda 2'], ['dinner', 'Cena']];
+    const n = v => Number(v) || 0;
+    const fmt = d => d ? d.split('-').reverse().join('/') : '';
+   
+    function workDate(data) { return data.currentDate || new Date().toISOString().slice(0, 10); }
+    function dayInfo(data, date) { return data.days?.[date] || { laborable: true }; }
+    function addDays(date, count) { const d = new Date(date + 'T12:00:00'); d.setDate(d.getDate() + count); return d.toISOString().slice(0, 10); }
+    function nextWorkDay(data, date) { let result = addDays(date, 1), guard = 0; while (!dayInfo(data, result).laborable && guard++ < 370)
+        result = addDays(result, 1); return result; }
+    function planFor(data, client) { return data.plans?.find(p => p.id === client.planId); }
+    function stateFor(data, client, date) {
+        if (!dayInfo(data, date).laborable)
+            return 'No laborable';
+        if (client.returnDate && date >= client.returnDate)
+            return 'Activo';
+        if (client.pauseStart && date >= client.pauseStart && (!client.returnDate || date < client.returnDate))
+            return 'Pausado';
+        if (client.pauseDates?.includes(date))
+            return 'Pausado';
+        if (client.startDate && client.startDate > date)
+            return 'Programado';
+        if (n(client.paidDays) && n(client.consumedDays) >= n(client.paidDays))
+            return 'Retorno pendiente';
+        return client.status || 'Activo';
+    }
+    function statusClass(state) { return state === 'Activo' ? 'success' : state === 'Pausado' ? 'warning text-dark' : 'secondary'; }
+    function whatsappNumber(branding) { return branding.whatsappNumber || APP_CONFIG.whatsappNumber; }
+    function waLink(branding, text) { const num = whatsappNumber(branding); return num ? `https://wa.me/${num}?text=${encodeURIComponent(text)}` : '#'; }
+    function renewalWarningDays(branding) { return Number.isFinite(branding.renewalWarningDays) ? branding.renewalWarningDays : 3; }
+    function menuItemsList(branding) { return branding.menuItems && branding.menuItems.length ? branding.menuItems : DEFAULT_ITEMS; }
+    function resizeImageToBlob(file, maxDim = 1100, quality = 0.72) {
+        return new Promise((resolve, reject) => {
+            if (!file || !file.type?.startsWith('image/')) { reject(new Error('Archivo no válido')); return; }
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = () => {
+                img.onload = () => {
+                    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+                    const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+                    const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('No se pudo comprimir la imagen')), 'image/jpeg', quality);
+                };
+                img.onerror = () => reject(new Error('No se pudo leer la imagen'));
+                img.src = reader.result;
+            };
+            reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+            reader.readAsDataURL(file);
+        });
+    }
+    function readCachedBranding() {
+        try {
+            return JSON.parse(localStorage.getItem(BRANDING_KEY)) || {};
+        }
+        catch (_) {
+            return {};
+        }
+    }
+    function readClientThemeStore() {
+        try {
+            return JSON.parse(localStorage.getItem(CLIENT_THEME_STORE_KEY)) || {};
+        }
+        catch (_) {
+            return {};
+        }
+    }
+    function getClientTheme(clientId) {
+        const store = readClientThemeStore(), key = clientId || 'default';
+        if (!store[key]) {
+            store[key] = localStorage.getItem(THEME_KEY) || 'light';
+            try {
+                localStorage.setItem(CLIENT_THEME_STORE_KEY, JSON.stringify(store));
+            }
+            catch (_) { }
+        }
+        return store[key];
+    }
+    function saveClientTheme(clientId, theme) {
+        const store = readClientThemeStore(), key = clientId || 'default';
+        store[key] = theme;
+        try {
+            localStorage.setItem(CLIENT_THEME_STORE_KEY, JSON.stringify(store));
+        }
+        catch (_) { }
+    }
+    async function fetchBrandingRemote() {
+        try {
+            const settings = await window.SupabaseDB?.rpc('get_branding', {});
+            if (!settings)
+                return null;
+            const b = {
+                companyName: settings.companyName, logoUrl: settings.logoUrl,
+                itemIcons: settings.itemIcons || {}, whatsappNumber: settings.whatsappNumber,
+                instagramUrl: settings.instagramUrl, instagramHandle: settings.instagramHandle,
+                adImageUrl: settings.adImageUrl, paymentQrUrl: settings.paymentQrUrl, renewalWarningDays: settings.renewalWarningDays,
+                menuItems: (settings.menuItems || []).map(m => [m.key, m.label])
+            };
+            try {
+                localStorage.setItem(BRANDING_KEY, JSON.stringify(b));
+            }
+            catch (_) { }
+            return b;
+        }
+        catch (_) {
+            return null;
+        }
+    }
+   
+    async function fetchIsPremium() {
+        try {
+            const info = await window.SupabaseDB?.rpc('get_plan_status', {});
+            if (!info)
+                return false;
+            const isPremiumPlan = info?.plan === 'premium';
+            const locked = 'clientPortalLocked' in info
+                ? !!info.clientPortalLocked
+                : (info.premiumLockedPages && 'clientPortal' in info.premiumLockedPages ? !!info.premiumLockedPages.clientPortal : true);
+            return isPremiumPlan || !locked;
+        }
+        catch (_) {
+            return false;
+        }
+    }
+    async function fetchServerSync(clientId) {
+        try {
+       
+            const [remoteMeta, remoteClient] = await Promise.all([
+                window.SupabaseDB?.getPortalCatalog(),
+                window.SupabaseDB?.dbGetClientRow(clientId)
+            ]);
+            return { remoteMeta, remoteClient };
+        }
+        catch (_) {
+            return { remoteMeta: null, remoteClient: null };
+        }
+    }
+    async function saveClient(updatedClient) {
+        localStorage.setItem(CLIENT_ROW_KEY, JSON.stringify(updatedClient));
+        try {
+       
+            const { pauseStart, returnDate, status, pauseDates, activeAddressId } = updatedClient;
+            return await window.SupabaseDB.dbSaveOwnClientProfile(updatedClient.id, { pauseStart, returnDate, status, pauseDates, activeAddressId });
+        }
+        catch (_) {
+            return false;
+        }
+    }
+    const LOGOUT_ICON = (React.createElement("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round" },
+        React.createElement("path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }),
+        React.createElement("path", { d: "M16 17l5-5-5-5" }),
+        React.createElement("path", { d: "M21 12H9" })));
+    function logout() {
+        try { window.SupabaseDB?.revokeSession(); } catch (_) { }
+        sessionStorage.removeItem(CLIENT_SESSION_KEY);
+        window.location.href = './index.html';
+    }
+    // ---------- Componentes chicos ----------
+    function LogoutButton() {
+        return React.createElement("button", { className: "client-logout-btn", onClick: logout, title: "Cerrar sesi\u00F3n" },
+            LOGOUT_ICON,
+            React.createElement("span", null, "Salir"));
+    }
+    function Header({ branding, theme, onThemeChange, showThemeSelect }) {
+        return (React.createElement("header", { className: "navbar bg-body rounded-4 shadow-sm px-3 mb-3" },
+            React.createElement("a", { className: "navbar-brand d-flex align-items-center gap-2 m-0", href: "#" },
+                React.createElement("img", { loading: "lazy", decoding: "async", className: "brand-image rounded-3", src: branding.logoUrl || APP_CONFIG.logoUrl, alt: branding.companyName || APP_CONFIG.companyName, onError: e => { e.target.style.display = 'none'; } }),
+                React.createElement("span", null,
+                    React.createElement("b", { className: "d-block fs-6" }, branding.companyName || APP_CONFIG.companyName),
+                    React.createElement("small", { className: "text-secondary" }, "Mi portal de cliente"))),
+            showThemeSelect && (React.createElement("div", { className: "d-flex align-items-center gap-2" },
+                React.createElement("label", { className: "form-label small text-secondary mb-0", htmlFor: "theme" }, "Tema"),
+                React.createElement("select", { className: "form-select form-select-sm", id: "theme", "aria-label": "Tema", value: theme, onChange: e => onThemeChange(e.target.value) },
+                    React.createElement("option", { value: "light" }, "Claro"),
+                    React.createElement("option", { value: "night" }, "Nocturno"),
+                    React.createElement("option", { value: "forest" }, "Bosque"))))));
+    }
+    function PremiumLock({ branding }) {
+        const wa = whatsappNumber(branding) ? waLink(branding, 'Hola, quiero activar el plan Premium para acceder al portal de clientes.') : '';
+        return (React.createElement(React.Fragment, null,
+            React.createElement(LogoutButton, null),
+            React.createElement(Header, { branding: branding, showThemeSelect: false }),
+            React.createElement("div", { className: "premium-lock" },
+                React.createElement("div", { className: "premium-lock-icon" }, "\uD83D\uDD12"),
+                React.createElement("h2", null, "Portal de clientes es una funci\u00F3n Premium"),
+                React.createElement("p", null, "Esta cuenta est\u00E1 en el plan B\u00E1sico. Contacta a tu proveedor para activar el plan Premium y desbloquear esta funci\u00F3n."),
+                wa && React.createElement("a", { className: "btn-premium", href: wa, target: "_blank", rel: "noopener" }, "Contactar por WhatsApp"))));
+    }
+    function Hero({ client }) {
+        return (React.createElement("section", { className: "hero rounded-4 shadow-sm p-4 mb-3 d-flex align-items-center justify-content-between gap-3" },
+            React.createElement("div", null,
+                React.createElement("h1", { className: "h3 mb-1" },
+                    "Hola, ",
+                    client.name),
+                React.createElement("p", { className: "mb-0 opacity-75" }, "Consulta tu plan y gestiona tus entregas.")),
+            React.createElement("div", { className: "client-avatar rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5" }, (client.name || '?').slice(0, 1).toUpperCase())));
+    }
+    function AdBanner({ branding }) {
+        if (!branding.adImageUrl)
+            return null;
+        return React.createElement("section", { className: "ad-banner rounded-4 shadow-sm overflow-hidden mb-3" },
+            React.createElement("img", { loading: "lazy", decoding: "async", src: branding.adImageUrl, alt: "Publicidad", className: "d-block" }));
+    }
+    function RenewalBanner({ data, client, branding, plan, state, remaining, onOpenPlanChange }) {
+        const show = n(client.paidDays) > 0 && remaining <= renewalWarningDays(branding) && !['Pausado', 'Programado', 'No laborable'].includes(state);
+        if (!show)
+            return null;
+        return (React.createElement("section", { className: "renewal-banner rounded-4 shadow-sm p-4 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3" },
+            React.createElement("div", { className: "d-flex align-items-center gap-3" },
+                React.createElement("span", { className: "bounce fs-1" }, "\uD83E\uDD64"),
+                React.createElement("div", null,
+                    React.createElement("span", { className: "ribbon mb-2 d-inline-flex" }, remaining <= 0 ? '¡Ya venció!' : remaining === 1 ? '¡Último día!' : `¡Solo ${remaining} días!`),
+                    React.createElement("h2", { className: "h5 mb-1 mt-2" }, remaining <= 0 ? 'Tu plan ya terminó' : 'Tu plan está por terminar'),
+                    React.createElement("p", { className: "mb-0 opacity-90" },
+                        remaining <= 0 ? 'Renueva ahora para no perder tus entregas.' : 'Renueva ahora y no te quedes sin tus entregas.',
+                        " \u00A1Es rapid\u00EDsimo! \uD83C\uDF89"))),
+            React.createElement("button", { className: "btn btn-light rounded-pill px-4", onClick: onOpenPlanChange }, "Quiero renovar")));
+    }
+    function PlanCard({ client, branding, plan, state, remaining, included }) {
+        const items = menuItemsList(branding).filter(([key]) => n(included[key]) > 0);
+        return (React.createElement("div", { className: "col-lg-8" },
+            React.createElement("article", { className: "card shadow-sm border-0 h-100 text-center" },
+                React.createElement("div", { className: "card-body p-4" },
+                    plan?.photoUrl && React.createElement("img", { loading: "lazy", decoding: "async", src: plan.photoUrl, alt: plan.name, style: { width: 84, height: 84, objectFit: 'cover', borderRadius: 16, margin: '0 auto 12px' } }),
+                    React.createElement("h2", { className: "h5" }, "Tu plan actual"),
+                    React.createElement("p", { className: "h3 mb-1" }, plan?.name || 'Plan sin asignar'),
+                    React.createElement("span", { className: `badge text-bg-${statusClass(state)} rounded-pill mb-4` }, state),
+                    React.createElement("div", { className: "row g-2 justify-content-center" },
+                        React.createElement("div", { className: "col-4" },
+                            React.createElement("div", { className: "metric p-3" },
+                                React.createElement("small", { className: "text-secondary d-block" }, "D\u00EDas pagados"),
+                                React.createElement("strong", { className: "fs-4" }, n(client.paidDays)))),
+                        React.createElement("div", { className: "col-4" },
+                            React.createElement("div", { className: "metric p-3" },
+                                React.createElement("small", { className: "text-secondary d-block" }, "Consumidos"),
+                                React.createElement("strong", { className: "fs-4" }, n(client.consumedDays)))),
+                        React.createElement("div", { className: "col-4" },
+                            React.createElement("div", { className: "metric p-3" },
+                                React.createElement("small", { className: "text-secondary d-block" }, "Restantes"),
+                                React.createElement("strong", { className: "fs-4" }, remaining)))),
+                    React.createElement("div", { className: "d-flex justify-content-center flex-wrap gap-2 mt-4" }, items.length ? items.map(([key, label]) => {
+                        const icon = branding.itemIcons?.[key];
+                        return (React.createElement("span", { className: "badge rounded-pill text-bg-light border", key: key },
+                            icon && React.createElement("img", { loading: "lazy", decoding: "async", src: icon, alt: "", style: { width: 18, height: 18, objectFit: 'cover', borderRadius: '50%', verticalAlign: -4, marginRight: 4 } }),
+                            n(included[key]),
+                            " ",
+                            label));
+                    }) : React.createElement("span", { className: "text-secondary" }, "Sin art\u00EDculos registrados."))))));
+    }
+    function SupportCard({ client, branding }) {
+        const wa = whatsappNumber(branding) ? waLink(branding, `Hola, soy ${client.name}. Quiero renovar o cambiar mi plan.`) : '';
+        return (React.createElement("div", { className: "col-lg-4" },
+            React.createElement("article", { className: "card shadow-sm border-0 h-100" },
+                React.createElement("div", { className: "card-body p-4 d-flex flex-column" },
+                    React.createElement("h2", { className: "h5" }, "Atenci\u00F3n al cliente"),
+                    React.createElement("p", { className: "text-secondary" }, "Para renovar o cambiar tu plan, escr\u00EDbenos directamente."),
+                    wa ? React.createElement("a", { className: "btn btn-whatsapp mt-auto", href: wa, target: "_blank", rel: "noopener" }, "Contactar por WhatsApp")
+                        : React.createElement("p", { className: "text-secondary small mb-0" }, "Contacta a tu proveedor para m\u00E1s informaci\u00F3n.")))));
+    }
+    function MessageAlert({ message }) {
+        if (!message?.text)
+            return null;
+        return (React.createElement("div", { className: `alert alert-${message.error ? 'danger' : 'warning'} mt-3 mb-0` },
+            message.text,
+            message.showSupport && message.wa && React.createElement(React.Fragment, null,
+                " ",
+                React.createElement("a", { className: "alert-link", href: message.wa, target: "_blank", rel: "noopener" }, "Contactar por WhatsApp"))));
+    }
+    // Reactivación programada (cuando ya hay returnDate futuro).
+    function ScheduledResumeCard({ client, next, message, onAdvance }) {
+        return (React.createElement("article", { className: "card shadow-sm border-0" },
+            React.createElement("div", { className: "card-body p-4" },
+                React.createElement("h2", { className: "h5 mb-1" }, "\u2705 Reactivaci\u00F3n programada"),
+                React.createElement("p", { className: "text-secondary" },
+                    "Tu servicio se reactivar\u00E1 autom\u00E1ticamente el ",
+                    React.createElement("b", null, fmt(client.returnDate)),
+                    ". No necesitas hacer nada m\u00E1s."),
+                React.createElement("p", { className: "text-secondary small mb-3" }, "\u00BFNecesitas que sea antes? Puedes adelantarla al siguiente d\u00EDa laborable."),
+                React.createElement("button", { className: "btn btn-outline-primary btn-sm", onClick: onAdvance },
+                    "Adelantar reactivaci\u00F3n al ",
+                    fmt(next)),
+                React.createElement(MessageAlert, { message: message }))));
+    }
+    // Formulario de reactivación (cuando está pausado sin fecha de retorno futura).
+    function ResumeForm({ next, message, onConfirm }) {
+        const [byDate, setByDate] = useState(false);
+        const [resumeDate, setResumeDate] = useState('');
+        return (React.createElement("article", { className: "card shadow-sm border-0" },
+            React.createElement("div", { className: "card-body p-4" },
+                React.createElement("h2", { className: "h5 mb-1" }, "Reactivar servicio"),
+                React.createElement("p", { className: "text-secondary" },
+                    "Elige cu\u00E1ndo quieres que se reactive. Puedes confirmarlo hasta las ",
+                    React.createElement("b", null, "22:00"),
+                    "."),
+                React.createElement("div", { className: "row g-2 mb-3" },
+                    React.createElement("div", { className: "col-sm-6" },
+                        React.createElement("input", { className: "btn-check", type: "radio", name: "resume-mode", id: "resume-mode-next", checked: !byDate, onChange: () => setByDate(false) }),
+                        React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "resume-mode-next" },
+                            React.createElement("span", { className: "d-block fw-semibold" }, "\u25B6 Ma\u00F1ana mismo"),
+                            React.createElement("span", { className: "d-block small text-secondary mt-1" },
+                                "Se reactiva el siguiente d\u00EDa laborable: ",
+                                fmt(next),
+                                "."))),
+                    React.createElement("div", { className: "col-sm-6" },
+                        React.createElement("input", { className: "btn-check", type: "radio", name: "resume-mode", id: "resume-mode-date", checked: byDate, onChange: () => setByDate(true) }),
+                        React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "resume-mode-date" },
+                            React.createElement("span", { className: "d-block fw-semibold" }, "\uD83D\uDCC5 Elegir fecha"),
+                            React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Por ejemplo, si vuelves reci\u00E9n en un par de d\u00EDas.")))),
+                byDate && (React.createElement("div", { className: "mb-3" },
+                    React.createElement("label", { className: "form-label", htmlFor: "resume-date" }, "\u00BFQu\u00E9 d\u00EDa quieres reactivarla?"),
+                    React.createElement("input", { className: "form-control", type: "date", id: "resume-date", min: next, value: resumeDate, onChange: e => setResumeDate(e.target.value) }))),
+                React.createElement("button", { className: "btn btn-primary", onClick: () => onConfirm(byDate, resumeDate) }, "Confirmar reactivaci\u00F3n"),
+                React.createElement(MessageAlert, { message: message }))));
+    }
+    // Formulario de pausa (cuando está activo).
+    function PauseForm({ next, message, onConfirm }) {
+        const [mode, setMode] = useState('open');
+        const [returnDate, setReturnDate] = useState('');
+        return (React.createElement("article", { className: "card shadow-sm border-0" },
+            React.createElement("div", { className: "card-body p-4" },
+                React.createElement("h2", { className: "h5 mb-1" }, "Pausar servicio"),
+                React.createElement("p", { className: "text-secondary" },
+                    "Elige c\u00F3mo quieres pausar. Se aplica desde el siguiente d\u00EDa laborable: ",
+                    React.createElement("b", null, fmt(next)),
+                    ", y puedes confirmarlo hasta las ",
+                    React.createElement("b", null, "22:00"),
+                    "."),
+                React.createElement("div", { className: "row g-2 mb-3" },
+                    React.createElement("div", { className: "col-sm-4" },
+                        React.createElement("input", { className: "btn-check", type: "radio", name: "pause-mode", id: "pause-mode-open", checked: mode === 'open', onChange: () => setMode('open') }),
+                        React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "pause-mode-open" },
+                            React.createElement("span", { className: "d-block fw-semibold" }, "\u23F8 Pausa sin fecha"),
+                            React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Reactivas cuando quieras, avis\u00E1ndonos por ac\u00E1 o por WhatsApp."))),
+                    React.createElement("div", { className: "col-sm-4" },
+                        React.createElement("input", { className: "btn-check", type: "radio", name: "pause-mode", id: "pause-mode-tomorrow", checked: mode === 'tomorrow', onChange: () => setMode('tomorrow') }),
+                        React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "pause-mode-tomorrow" },
+                            React.createElement("span", { className: "d-block fw-semibold" }, "1\uFE0F\u20E3 Solo ma\u00F1ana"),
+                            React.createElement("span", { className: "d-block small text-secondary mt-1" },
+                                "Se pausa un solo d\u00EDa (",
+                                fmt(next),
+                                ") y se reactiva sola al siguiente."))),
+                    React.createElement("div", { className: "col-sm-4" },
+                        React.createElement("input", { className: "btn-check", type: "radio", name: "pause-mode", id: "pause-mode-scheduled", checked: mode === 'scheduled', onChange: () => setMode('scheduled') }),
+                        React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "pause-mode-scheduled" },
+                            React.createElement("span", { className: "d-block fw-semibold" }, "\uD83D\uDCC5 Con fecha de retorno"),
+                            React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Se reactiva sola el d\u00EDa que elijas, sin que tengas que avisar.")))),
+                mode === 'scheduled' && (React.createElement("div", { className: "mb-3" },
+                    React.createElement("label", { className: "form-label", htmlFor: "return-date" }, "\u00BFQu\u00E9 d\u00EDa quieres reactivarla?"),
+                    React.createElement("input", { className: "form-control", type: "date", id: "return-date", min: next, value: returnDate, onChange: e => setReturnDate(e.target.value) }))),
+                React.createElement("button", { className: "btn btn-primary", onClick: () => onConfirm(mode, returnDate) }, "Confirmar pausa"),
+                React.createElement(MessageAlert, { message: message }))));
+    }
+ 
+    function AddressCard({ client, data, branding, onSaveClient, onSaveTomorrowOverride }) {
+        const addresses = client.addresses || [];
+        const next = nextWorkDay(data, workDate(data));
+        const currentOverrideId = (client.addressOverrides || []).find(o => o.date === next)?.addressId || '';
+        const hasChoice = addresses.length >= 2;
+        const [mode, setMode] = useState('permanent'); // 'permanent' | 'tomorrow'
+        const [selected, setSelected] = useState(currentOverrideId || client.activeAddressId || addresses[0]?.id || '');
+        const [feedback, setFeedback] = useState(null);
+        const [saving, setSaving] = useState(false);
+        const waNewAddress = whatsappNumber(branding) ? waLink(branding, `Hola, soy ${client.name}. Quiero agregar una nueva dirección de entrega.`) : '';
+        async function handleSave() {
+            if (!selected)
+                return;
+            setSaving(true);
+            let result;
+            if (mode === 'tomorrow') {
+                result = await onSaveTomorrowOverride(selected);
+            }
+            else if (selected === client.activeAddressId) {
+                result = { error: false, text: 'Esa ya es tu dirección de entrega actual.' };
+            }
+            else {
+                const updated = { ...client, activeAddressId: selected };
+                const saved = await onSaveClient(updated);
+                if (saved) {
+                    window.SupabaseDB?.dbInsertAudit({ actor_id: client.id, actor_name: client.name, actor_role: 'cliente', action: 'Cliente cambió su dirección habitual (autoservicio)', entity_type: 'client', entity_label: client.name, entity_id: client.id, details: { addressId: selected } });
+                }
+                result = saved
+                    ? { error: false, text: 'Listo — esa será tu dirección de entrega desde ahora, hasta que la cambies de nuevo.' }
+                    : { error: true, text: 'No se pudo guardar. Intenta nuevamente o contáctanos por WhatsApp.' };
+            }
+            setSaving(false);
+            setFeedback(result);
+        }
+        return (React.createElement("div", { className: "col-12" },
+            React.createElement("article", { className: "card shadow-sm border-0" },
+                React.createElement("div", { className: "card-body p-4" },
+                    React.createElement("h2", { className: "h5 mb-1" }, "\uD83D\uDCCD Tu direcci\u00F3n de entrega"),
+                    !hasChoice && (React.createElement("p", { className: "text-secondary mb-3" },
+                        "Actualmente entregamos en: ",
+                        React.createElement("b", null, addresses[0]?.address || 'sin dirección registrada'),
+                        ". Solo tienes esta direcci\u00F3n guardada.")),
+                    hasChoice && (React.createElement(React.Fragment, null,
+                        React.createElement("p", { className: "text-secondary" },
+                            "Elige entre tus direcciones guardadas. Puedes cambiarla desde ahora en adelante, o solo para el pr\u00F3ximo d\u00EDa de entrega (",
+                            fmt(next),
+                            ") sin tocar tu direcci\u00F3n de siempre."),
+                        React.createElement("div", { className: "row g-2 mb-3" },
+                            React.createElement("div", { className: "col-sm-6" },
+                                React.createElement("input", { className: "btn-check", type: "radio", name: "address-mode", id: "address-mode-permanent", checked: mode === 'permanent', onChange: () => setMode('permanent') }),
+                                React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "address-mode-permanent" },
+                                    React.createElement("span", { className: "d-block fw-semibold" }, "\uD83C\uDFE0 Desde ahora en adelante"),
+                                    React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Cambia tu direcci\u00F3n habitual hasta que la vuelvas a cambiar."))),
+                            React.createElement("div", { className: "col-sm-6" },
+                                React.createElement("input", { className: "btn-check", type: "radio", name: "address-mode", id: "address-mode-tomorrow", checked: mode === 'tomorrow', onChange: () => setMode('tomorrow') }),
+                                React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "address-mode-tomorrow" },
+                                    React.createElement("span", { className: "d-block fw-semibold" },
+                                        "\uD83D\uDCC5 Solo el ",
+                                        fmt(next)),
+                                    React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Cambio puntual; despu\u00E9s vuelve a tu direcci\u00F3n de siempre.")))),
+                        React.createElement("div", { className: "row g-2 align-items-end" },
+                            React.createElement("div", { className: "col-sm-8" },
+                                React.createElement("label", { className: "form-label", htmlFor: "address-select" }, mode === 'tomorrow' ? `Dirección para el ${fmt(next)}` : 'Nueva dirección habitual'),
+                                React.createElement("select", { className: "form-select", id: "address-select", value: selected, onChange: e => setSelected(e.target.value) }, addresses.map(a => React.createElement("option", { value: a.id, key: a.id },
+                                    a.address || 'Sin nombre',
+                                    a.id === client.activeAddressId ? ' (actual)' : '')))),
+                            React.createElement("div", { className: "col-sm-4" },
+                                React.createElement("button", { className: "btn btn-primary w-100", onClick: handleSave, disabled: saving }, saving ? 'Guardando…' : 'Guardar'))),
+                        mode === 'tomorrow' && currentOverrideId && React.createElement("p", { className: "text-secondary small mt-2 mb-0" },
+                            "Ya elegiste una direcci\u00F3n distinta solo para el ",
+                            fmt(next),
+                            ". Si no cambias nada, se usar\u00E1 esa."))),
+                    feedback && React.createElement("div", { className: `alert mt-3 mb-0 alert-${feedback.error ? 'danger' : 'success'}` }, feedback.text),
+                    waNewAddress && (React.createElement("p", { className: "text-secondary small mt-3 mb-0" },
+                        "\u00BFNecesitas una direcci\u00F3n que no est\u00E1 en la lista? ",
+                        React.createElement("a", { href: waNewAddress, target: "_blank", rel: "noopener" }, "Escr\u00EDbenos por WhatsApp"),
+                        " para tomar los datos correctamente."))))));
+    }
+    function NoteCard({ client }) {
+        const [text, setText] = useState('');
+        const [feedback, setFeedback] = useState(null);
+        const [sending, setSending] = useState(false);
+        async function handleSend() {
+            if (!text.trim()) {
+                setFeedback({ error: true, text: 'Escribe un mensaje antes de enviarlo.' });
+                return;
+            }
+            setSending(true);
+            const result = await window.SupabaseDB?.rpc('crear_nota_cliente', { p_token: window.SupabaseDB?.getSessionToken(), p_client_id: client.id, p_texto: text });
+            setSending(false);
+            if (!result) {
+                setFeedback({ error: true, text: 'No se pudo enviar. Intenta nuevamente o contáctanos por WhatsApp.' });
+                return;
+            }
+            setText('');
+            setFeedback({ error: false, text: '¡Mensaje enviado! El equipo se pondrá en contacto contigo.' });
+        }
+        return (React.createElement("div", { className: "col-12" },
+            React.createElement("article", { className: "card shadow-sm border-0" },
+                React.createElement("div", { className: "card-body p-4" },
+                    React.createElement("h2", { className: "h5" }, "D\u00E9janos un mensaje"),
+                    React.createElement("p", { className: "text-secondary" }, "\u00BFPrefieres no escribir por WhatsApp? Cu\u00E9ntanos qu\u00E9 necesitas (ej.: \"Ll\u00E1menme ma\u00F1ana para cambiar de plan\") y el equipo te contacta."),
+                    React.createElement("textarea", { className: "form-control mb-3", rows: "2", placeholder: "Escribe tu mensaje\u2026", value: text, onChange: e => setText(e.target.value) }),
+                    React.createElement("button", { className: "btn btn-primary", onClick: handleSend, disabled: sending }, sending ? 'Enviando…' : 'Enviar mensaje'),
+                    feedback && React.createElement("div", { className: `alert mt-3 mb-0 alert-${feedback.error ? 'danger' : 'success'}` }, feedback.text)))));
+    }
+    function PlanChangeButton({ onOpen }) {
+        return (React.createElement("div", { className: "col-12" },
+            React.createElement("button", { className: "btn btn-primary btn-lg w-100 rounded-4 shadow-sm py-3", onClick: onOpen },
+                "\u00BFQuieres renovar o cambiar de plan?")));
+    }
+    function PlanChangeModal({ show, onClose, data, client, branding, plan }) {
+        const [step, setStep] = useState('choose'); // choose | pay | sent
+        const [requestType, setRequestType] = useState(null); // renew | newplan
+        const [selectedPlanId, setSelectedPlanId] = useState('');
+        const [file, setFile] = useState(null);
+        const [sending, setSending] = useState(false);
+        const [error, setError] = useState('');
+        useEffect(() => {
+            if (show) { setStep('choose'); setRequestType(null); setSelectedPlanId(''); setFile(null); setError(''); }
+        }, [show]);
+        if (!show)
+            return null;
+        const availablePlans = (data.plans || []).filter(p => p.availableForPurchase);
+        const targetPlan = requestType === 'renew' ? plan : availablePlans.find(p => p.id === selectedPlanId);
+        function chooseRenew() { setRequestType('renew'); setStep('pay'); }
+        function choosePlan(p) { setRequestType('newplan'); setSelectedPlanId(p.id); setStep('pay'); }
+        async function handleDownloadQr() {
+            try {
+                const res = await fetch(branding.paymentQrUrl);
+                const blob = await res.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'qr-pago.jpg';
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+            } catch (_) { window.open(branding.paymentQrUrl, '_blank'); }
+        }
+        function handleFile(e) {
+            const f = e.target.files[0];
+            if (f && !f.type?.startsWith('image/')) { setError('Solo se aceptan imágenes (no PDF ni otros archivos).'); return; }
+            setError(''); setFile(f || null);
+        }
+        async function handleSubmit() {
+            if (!file) { setError('Sube una imagen de tu comprobante antes de enviar.'); return; }
+            setSending(true); setError('');
+            try {
+                const blob = await resizeImageToBlob(file, 1100, 0.72);
+                const path = `comprobantes/${client.id}_${Date.now()}.jpg`;
+                const url = await window.SupabaseDB?.storageUploadImage(path, blob, 'image/jpeg');
+                if (!url) throw new Error('upload');
+                const label = requestType === 'renew' ? `renovar su plan actual ("${plan?.name || 'sin plan'}")` : `cambiar al plan "${targetPlan?.name || ''}"`;
+                const amountText = targetPlan?.cost ? `Bs ${targetPlan.cost}` : 'monto no definido';
+                const text = `Solicitud de plan: ${client.name} quiere ${label}. Monto: ${amountText}. Comprobante: ${url}`;
+                const result = await window.SupabaseDB?.rpc('crear_nota_cliente', { p_token: window.SupabaseDB?.getSessionToken(), p_client_id: client.id, p_texto: text });
+                if (!result) throw new Error('note');
+                setStep('sent');
+            } catch (_) {
+                setError('No se pudo enviar. Intenta nuevamente o contáctanos por WhatsApp.');
+            }
+            setSending(false);
+        }
+        const wa = whatsappNumber(branding) ? waLink(branding, `Hola, soy ${client.name}. Tuve un problema al subir mi comprobante de pago.`) : '';
+        return (React.createElement(React.Fragment, null,
+            React.createElement("div", { className: "modal-backdrop fade show" }),
+            React.createElement("div", { className: "modal fade show", style: { display: 'block' }, tabIndex: -1, role: "dialog" },
+                React.createElement("div", { className: "modal-dialog modal-dialog-centered", role: "document" },
+                    React.createElement("div", { className: "modal-content rounded-4" },
+                        React.createElement("div", { className: "modal-header" },
+                            React.createElement("h5", { className: "modal-title" }, step === 'sent' ? '¡Listo!' : '¿Quieres renovar o cambiar de plan?'),
+                            React.createElement("button", { type: "button", className: "btn-close", onClick: onClose })),
+                        React.createElement("div", { className: "modal-body" },
+                            step === 'choose' && React.createElement("div", { className: "d-grid gap-2" },
+                                React.createElement("button", { className: "btn btn-primary btn-lg", onClick: chooseRenew }, "Quiero renovar mi plan"),
+                                React.createElement("button", { className: "btn btn-outline-primary btn-lg", onClick: () => setStep('newplan') }, "Quiero un nuevo plan")),
+                            step === 'newplan' && React.createElement("div", { className: "d-grid gap-2" },
+                                availablePlans.length ? availablePlans.map(p => (React.createElement("button", { key: p.id, className: "btn btn-outline-primary btn-lg text-start", onClick: () => choosePlan(p) },
+                                    React.createElement("b", null, p.name),
+                                    p.cost ? React.createElement("span", { className: "float-end" }, `Bs ${p.cost}`) : null)))
+                                    : React.createElement("p", { className: "text-secondary mb-0" }, "Por ahora no hay planes disponibles para elegir. Contáctanos directamente."),
+                                React.createElement("button", { className: "btn btn-danger", onClick: () => setStep('choose') }, "\u2190 Volver")),
+                            step === 'pay' && React.createElement("div", null,
+                                React.createElement("p", { className: "mb-1" }, requestType === 'renew' ? `Vas a renovar tu plan actual: ` : `Vas a cambiar al plan: `, React.createElement("b", null, targetPlan?.name || '—')),
+                                React.createElement("p", { className: "h4 mb-3" }, targetPlan?.cost ? `Bs ${targetPlan.cost}` : 'Monto a confirmar con el equipo'),
+                                branding.paymentQrUrl ? React.createElement("div", { className: "text-center mb-3" },
+                                    React.createElement("img", { src: branding.paymentQrUrl, alt: "QR de pago", style: { maxWidth: 220, width: '100%' }, className: "rounded-3 border mb-2" }),
+                                    React.createElement("p", { className: "text-secondary small mb-2" }, "Paga a este QR y sube tu comprobante."),
+                                    React.createElement("button", { type: "button", className: "btn btn-sm btn-outline-secondary mb-3", onClick: handleDownloadQr }, "Descargar QR"))
+                                    : React.createElement("p", { className: "text-secondary small" }, "El equipo aún no cargó un QR de pago. Contáctanos para coordinar el pago."),
+                                React.createElement("label", { className: "form-label small text-secondary" }, "Comprobante de pago (solo imagen)"),
+                                React.createElement("input", { type: "file", accept: "image/*", className: "form-control mb-3", onChange: handleFile }),
+                                error && React.createElement("div", { className: "alert alert-danger py-2 small" }, error),
+                                React.createElement("div", { className: "d-flex gap-2" },
+                                    React.createElement("button", { className: "btn btn-danger", onClick: () => setStep(requestType === 'renew' ? 'choose' : 'newplan') }, "\u2190 Volver"),
+                                    React.createElement("button", { className: "btn btn-primary ms-auto", onClick: handleSubmit, disabled: sending }, sending ? 'Enviando…' : 'Enviar comprobante'))),
+                            step === 'sent' && React.createElement("div", { className: "text-center py-2" },
+                                React.createElement("span", { className: "fs-1 d-block mb-2" }, "\u2705"),
+                                React.createElement("p", { className: "mb-1" }, "El equipo está procesando tu solicitud."),
+                                React.createElement("p", { className: "text-secondary small" }, "Te vamos a contactar en cuanto la revisemos."),
+                                wa && React.createElement("p", { className: "small" }, "¿Urgente? ", React.createElement("a", { className: "link-whatsapp", href: wa, target: "_blank", rel: "noopener" }, "Escríbenos por WhatsApp")),
+                                React.createElement("button", { className: "btn btn-primary mt-2", onClick: onClose }, "Cerrar"))))))));
+    }
+    function InstagramLink({ branding }) {
+        const url = branding.instagramUrl || APP_CONFIG.instagramUrl;
+        if (!url)
+            return null;
+        return (React.createElement("div", { className: "col-12" },
+            React.createElement("a", { className: "instagram d-flex align-items-center gap-3 rounded-4 p-3 shadow-sm", href: url, target: "_blank", rel: "noopener" },
+                React.createElement("span", { className: "fs-3" }, "\u25CE"),
+                React.createElement("span", null,
+                    React.createElement("b", { className: "d-block" }, "Seguinos en Instagram"),
+                    React.createElement("small", null,
+                        branding.instagramHandle || APP_CONFIG.instagramHandle,
+                        " \u00B7 novedades, men\u00FAs y bienestar")))));
+    }
+    // ---------- Portal completo (una vez cargado todo) ----------
+    function Portal({ data, client, branding, theme, onThemeChange, onSaveClient }) {
+        const [message, setMessage] = useState(null); // { text, error, showSupport, wa }
+        const [showPlanChange, setShowPlanChange] = useState(false);
+        const date = workDate(data);
+        const next = nextWorkDay(data, date);
+        const state = stateFor(data, client, date);
+        const plan = planFor(data, client);
+        const remaining = Math.max(0, n(client.paidDays) - n(client.consumedDays));
+        const included = client.items && Object.keys(client.items).length ? client.items : (plan?.items || {});
+        function guardedFail(text, showSupport) {
+            setMessage({ text, error: true, showSupport, wa: showSupport ? waLink(branding, `Hola, soy ${client.name}. Necesito ayuda con mi cuenta.`) : '' });
+        }
+        async function handlePause(mode, returnDateInput) {
+            const now = new Date();
+            if (now.getHours() >= 22) {
+                setMessage({ text: 'Ya pasó el horario de pausa automática. Ponte en contacto con Atención al Cliente.', error: true, showSupport: true, wa: waLink(branding, `Hola, soy ${client.name}. Necesito solicitar una pausa de mi servicio.`) });
+                return;
+            }
+            if (mode === 'scheduled' && !returnDateInput) {
+                setMessage({ text: 'Selecciona una fecha de retorno para esta opción.', error: true });
+                return;
+            }
+            const returnDate = mode === 'tomorrow' ? nextWorkDay(data, next) : mode === 'scheduled' ? returnDateInput : '';
+            if (returnDate && returnDate <= next) {
+                setMessage({ text: 'La fecha de retorno debe ser posterior al día pausado.', error: true });
+                return;
+            }
+            const updated = { ...client, pauseStart: next, returnDate, status: returnDate ? 'Programado' : 'Pausado', pauseDates: (client.pauseDates || []).filter(d => d !== next) };
+            const saved = await onSaveClient(updated);
+            if (!saved) {
+                setMessage({ text: 'No se pudo guardar la pausa en la base de datos. Intenta nuevamente.', error: true });
+                return;
+            }
+            window.SupabaseDB?.dbInsertAudit({ actor_id: client.id, actor_name: client.name, actor_role: 'cliente', action: 'Cliente pausó su servicio (autoservicio)', entity_type: 'client', entity_label: client.name, entity_id: client.id, details: { desde: next, retorno: returnDate || 'sin definir', modo: mode } });
+            setMessage({
+                text: mode === 'tomorrow' ? `Pausa de un solo día (${fmt(next)}). Se reactiva sola el ${fmt(returnDate)}.`
+                    : returnDate ? `Pausa programada desde el ${fmt(next)} hasta el ${fmt(returnDate)}.`
+                        : `Pausa abierta desde el ${fmt(next)} sin fecha de retorno.`,
+                error: false
+            });
+        }
+        async function handleResume(byDate, resumeDateInput) {
+            const now = new Date();
+            if (now.getHours() >= 22) {
+                setMessage({ text: 'Ya pasó el horario de reactivación automática. Ponte en contacto con Atención al Cliente.', error: true, showSupport: true, wa: waLink(branding, `Hola, soy ${client.name}. Necesito reactivar mi servicio.`) });
+                return;
+            }
+            const target = byDate ? resumeDateInput : next;
+            if (byDate && !target) {
+                setMessage({ text: 'Selecciona una fecha de reactivación.', error: true });
+                return;
+            }
+            if (target < next) {
+                setMessage({ text: 'La fecha de reactivación debe ser el siguiente día laborable o una posterior.', error: true });
+                return;
+            }
+            const updated = { ...client, returnDate: target, status: 'Programado' };
+            const saved = await onSaveClient(updated);
+            if (!saved) {
+                setMessage({ text: 'No se pudo guardar la reactivación en la base de datos. Intenta nuevamente.', error: true });
+                return;
+            }
+            window.SupabaseDB?.dbInsertAudit({ actor_id: client.id, actor_name: client.name, actor_role: 'cliente', action: 'Cliente reactivó su servicio (autoservicio)', entity_type: 'client', entity_label: client.name, entity_id: client.id, details: { reactivaDesde: target } });
+            setMessage({ text: `Reactivación programada para el ${fmt(target)}.`, error: false });
+        }
+        async function handleAddressOverride(selectedAddressId) {
+            const now = new Date();
+            if (now.getHours() >= 22)
+                return { error: true, text: 'Ya pasó el horario para cambiar la dirección de mañana. Ponte en contacto con Atención al Cliente.' };
+            const result = await window.SupabaseDB?.rpc('set_client_address_override', { p_token: window.SupabaseDB?.getSessionToken(), p_client_id: client.id, p_address_id: selectedAddressId, p_date: next });
+            if (!result)
+                return { error: true, text: 'No se pudo guardar. Intenta nuevamente o contáctanos por WhatsApp.' };
+            const overrides = Array.isArray(result) ? result : (client.addressOverrides || []).filter(o => o.date !== next).concat([{ date: next, addressId: selectedAddressId }]);
+            const updated = { ...client, addressOverrides: overrides };
+            localStorage.setItem(CLIENT_ROW_KEY, JSON.stringify(updated));
+            onSaveClient(updated, true); 
+            window.SupabaseDB?.dbInsertAudit({ actor_id: client.id, actor_name: client.name, actor_role: 'cliente', action: 'Cliente cambió su dirección de entrega (autoservicio)', entity_type: 'client', entity_label: client.name, entity_id: client.id, details: { fecha: next, addressId: selectedAddressId } });
+            return { error: false, text: 'Guardado. Se usará esa dirección para el pedido de mañana.' };
+        }
+        return (React.createElement(React.Fragment, null,
+            React.createElement(LogoutButton, null),
+            React.createElement(Header, { branding: branding, theme: theme, onThemeChange: onThemeChange, showThemeSelect: true }),
+            React.createElement(Hero, { client: client }),
+            React.createElement(AdBanner, { branding: branding }),
+            React.createElement(RenewalBanner, { data: data, client: client, branding: branding, plan: plan, state: state, remaining: remaining, onOpenPlanChange: () => setShowPlanChange(true) }),
+            React.createElement("section", { className: "row g-3" },
+                React.createElement(PlanCard, { client: client, branding: branding, plan: plan, state: state, remaining: remaining, included: included }),
+                React.createElement(PlanChangeButton, { onOpen: () => setShowPlanChange(true) }),
+                React.createElement(SupportCard, { client: client, branding: branding }),
+                React.createElement("div", { className: "col-12" }, state === 'Pausado'
+                    ? (client.returnDate && client.returnDate > date
+                        ? React.createElement(ScheduledResumeCard, { client: client, next: next, message: message, onAdvance: () => handleResume(false) })
+                        : React.createElement(ResumeForm, { next: next, message: message, onConfirm: handleResume }))
+                    : React.createElement(PauseForm, { next: next, message: message, onConfirm: handlePause })),
+                React.createElement(AddressCard, { client: client, data: data, branding: branding, onSaveClient: onSaveClient, onSaveTomorrowOverride: handleAddressOverride }),
+                React.createElement(NoteCard, { client: client }),
+                React.createElement(InstagramLink, { branding: branding })),
+            React.createElement(PlanChangeModal, { show: showPlanChange, onClose: () => setShowPlanChange(false), data: data, client: client, branding: branding, plan: plan })));
+    }
+    function App() {
+        const [phase, setPhase] = useState('checking'); 
+        const [data, setData] = useState(null);
+        const [client, setClient] = useState(null);
+        const [branding, setBranding] = useState(() => readCachedBranding());
+        const [theme, setTheme] = useState('light');
+        const sessionRef = useRef(null);
+        const bootedRef = useRef(false);
+        useEffect(() => {
+            if (bootedRef.current)
+                return;
+            bootedRef.current = true;
+            (async () => {
+                let localData, session;
+                try {
+                    localData = JSON.parse(localStorage.getItem(OPERATIONS_KEY)) || {};
+                    session = JSON.parse(sessionStorage.getItem(CLIENT_SESSION_KEY));
+                }
+                catch (_) {
+                    localData = {};
+                    session = null;
+                }
+                if (!session) {
+                    window.location.replace('./index.html');
+                    return;
+                }
+                sessionRef.current = session;
+                window.SupabaseDB?.setSessionToken(session.sessionToken || null, 'cliente');
+                localData.days || (localData.days = {});
+                let localClient = null;
+                try {
+                    localClient = JSON.parse(localStorage.getItem(CLIENT_ROW_KEY));
+                }
+                catch (_) { }
+                const needsClientFetch = !localClient || localClient.id !== session.id;
+              
+                const [fetchedClient, freshBranding, isPremium] = await Promise.all([
+                    needsClientFetch ? window.SupabaseDB?.dbGetClientRow(session.id) : Promise.resolve(localClient),
+                    fetchBrandingRemote(),
+                    fetchIsPremium()
+                ]);
+                if (needsClientFetch) {
+                    if (!fetchedClient) {
+                        window.location.replace('./index.html');
+                        return;
+                    }
+                    localClient = fetchedClient;
+                    localStorage.setItem(CLIENT_ROW_KEY, JSON.stringify(localClient));
+                }
+                setData(localData);
+                setClient(localClient);
+                setTheme(getClientTheme(session.id));
+                if (freshBranding)
+                    setBranding(freshBranding);
+                if (!isPremium) {
+                    setPhase('locked');
+                    return;
+                }
+                setPhase('portal');
+                window.SupabaseDB?.joinPresence({ id: localClient.id, role: 'cliente', name: localClient.name });
+               
+                const [{ remoteMeta, remoteClient }, freshBranding2] = await Promise.all([
+                    fetchServerSync(session.id),
+                    fetchBrandingRemote()
+                ]);
+                if (remoteMeta) {
+                    const merged = { ...localData, plans: remoteMeta.plans ?? localData.plans, days: remoteMeta.days ?? localData.days, currentDate: remoteMeta.currentDate ?? localData.currentDate };
+                    localStorage.setItem(OPERATIONS_KEY, JSON.stringify(merged));
+                    localData = merged;
+                    setData(merged);
+                }
+                if (remoteClient) {
+                    localStorage.setItem(CLIENT_ROW_KEY, JSON.stringify(remoteClient));
+                    localClient = remoteClient;
+                    setClient(remoteClient);
+                }
+                if (freshBranding2)
+                    setBranding(freshBranding2);
+                if (!(await fetchIsPremium())) {
+                    setPhase('locked');
+                    return;
+                }
+                setPhase('portal');
+            })();
+        }, []);
+        useEffect(() => {
+            if (phase === 'locked') {
+                document.documentElement.dataset.bsTheme = 'light';
+                document.documentElement.dataset.theme = 'light';
+            }
+            else if (phase === 'portal') {
+                document.documentElement.dataset.bsTheme = theme === 'night' ? 'dark' : 'light';
+                document.documentElement.dataset.theme = theme;
+            }
+        }, [phase, theme]);
+        function handleThemeChange(newTheme) {
+            if (sessionRef.current)
+                saveClientTheme(sessionRef.current.id, newTheme);
+            setTheme(newTheme);
+        }
+      
+        async function handleSaveClient(updated, onLocalUpdateOnly) {
+            if (onLocalUpdateOnly) {
+                setClient(updated);
+                return true;
+            }
+            const saved = await saveClient(updated);
+            if (saved)
+                setClient(updated);
+            return saved;
+        }
+        if (phase === 'checking') {
+            return React.createElement("p", { className: "text-secondary text-center py-5" }, "Cargando tu portal\u2026");
+        }
+        if (phase === 'locked') {
+            return React.createElement(PremiumLock, { branding: branding });
+        }
+        return React.createElement(Portal, { data: data, client: client, branding: branding, theme: theme, onThemeChange: handleThemeChange, onSaveClient: handleSaveClient });
+    }
+    ReactDOM.createRoot(document.getElementById('portal-root')).render(React.createElement(App, null));
+} 
+if (window.APP_CONFIG && window.SupabaseDB && window.React && window.ReactDOM) {
+    boot();
+}
+else {
+    const waitForDeps = setInterval(() => {
+        if (window.APP_CONFIG && window.SupabaseDB && window.React && window.ReactDOM) {
+            clearInterval(waitForDeps);
+            boot();
+        }
+    }, 20);
+}
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+</body>
+</html>

@@ -1,36 +1,378 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Catering Control</title>
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <meta name="theme-color" content="#0d6efd" />
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Catering Control · Iniciar sesión</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
 
-    <!-- config.js va ANTES que el bundle de React: define window.APP_CONFIG
-         que después lee src/services/config.js. Editar este archivo (en
-         /public/config.js) no requiere recompilar la app. -->
-    <script src="/config.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-      crossorigin="anonymous"
-    ></script>
-  </body>
+  <script src="./config.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin defer></script>
+  <script src="./app.js" defer></script>
+
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin defer></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin defer></script>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#3867f4">
+  <link rel="icon" href="./icons/favicon-32.png" type="image/png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Catering">
+
+  <style>
+
+    html { font-size:15px; }
+    :root {
+      --brand:#3867f4;
+      --font:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+      --font-display:Figtree,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+      --bs-primary:#3867f4;
+      --bs-primary-rgb:56,103,244;
+      --bs-link-color:#3867f4;
+      --bs-link-color-rgb:56,103,244;
+      --bs-link-hover-color:#2a52d6;
+      --bs-link-hover-color-rgb:42,82,214;
+    }
+    body { min-height:100vh; font-family:var(--font); background:radial-gradient(circle at 20% 20%,rgba(56,103,244,.2),transparent 34%),#f5f7fb; }
+    #brand-title, .btn, .nav-pills .nav-link { font-family:var(--font-display); }
+    .btn-primary {
+      --bs-btn-bg: var(--brand);
+      --bs-btn-border-color: var(--brand);
+      --bs-btn-hover-bg: var(--brand);
+      --bs-btn-hover-border-color: var(--brand);
+      --bs-btn-active-bg: var(--brand);
+      --bs-btn-active-border-color: var(--brand);
+      --bs-btn-disabled-bg: var(--brand);
+      --bs-btn-disabled-border-color: var(--brand);
+      filter: brightness(1);
+      transition: filter .15s, transform .15s ease, box-shadow .15s ease;
+    }
+    .btn-primary:hover, .btn-primary:active { filter: brightness(.92); }
+    .btn-primary, #whatsapp-support-btn {
+      border-radius: 999px;
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--brand) 35%, transparent);
+    }
+    .btn-primary:hover, #whatsapp-support-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px color-mix(in srgb, var(--brand) 40%, transparent);
+    }
+    .btn-primary:active { transform: translateY(0) scale(.98); }
+    #whatsapp-support-btn { transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+    .nav-pills .nav-link { border-radius: 999px; }
+    .nav-pills .nav-link.active { background-color: var(--brand); color: #fff; }
+    .login-card { max-width:420px; }
+    .login-card .card { overflow:hidden; }
+    .brand-row { display:flex; align-items:center; gap:16px; }
+    .brand-info { min-width:0; flex:1; }
+    .brand-mark { width:72px; height:72px; flex:0 0 auto; border-radius:1rem; overflow:hidden; background:var(--brand); transition:background .2s; }
+    .brand-mark img { width:100%; height:100%; object-fit:contain; }
+    .form-panel { display:none; }
+    .form-panel.active { display:block; }
+    [data-theme="night"] { --brand:#7296ff; }
+    [data-theme="night"] body { background:radial-gradient(circle at 20% 20%,rgba(114,150,255,.25),transparent 34%),#121824; }
+    [data-theme="night"] .card { background:#1a2130; color:#e7ecf5; }
+    [data-theme="night"] .text-secondary { color:#9aa7bd!important; }
+    [data-theme="night"] .form-control, [data-theme="night"] .form-select { background:#121824; color:#e7ecf5; border-color:#2b3648; }
+    [data-theme="night"] .bg-body-tertiary { background:#121824!important; }
+    [data-theme="forest"] { --brand:#1f7a4d; }
+    [data-theme="forest"] body { background:radial-gradient(circle at 20% 20%,rgba(31,122,77,.25),transparent 34%),#dcefdc; }
+    [data-theme="forest"] .card { background:#eef7ee; }
+    [data-theme="forest"] .bg-body-tertiary { background:#cde6cd!important; }
+    #whatsapp-support-btn:hover { background:#20bd5a!important; color:#fff; }
+  </style>
+</head>
+<body class="d-flex align-items-center py-4">
+  <main class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 login-card">    
+        <div id="root"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+function boot() {
+    const { useState, useEffect, useRef, useCallback } = React;
+    const APP_CONFIG = window.APP_CONFIG;
+    const BRANDING_CACHE_KEY = `${APP_CONFIG.storagePrefix}-branding-cache-v1`;
+    const STAFF_SESSION_KEY = `${APP_CONFIG.storagePrefix}-staff-session-v1`;
+    const CLIENT_SESSION_KEY = `${APP_CONFIG.storagePrefix}-client-session-v1`;
+    const UI_THEME_KEY = `${APP_CONFIG.storagePrefix}-ui-theme-v1`;
+    const STAFF_APP_URL = './panel.html';
+    const CLIENT_PORTAL_URL = './cliente.html';
+
+    function staffDestination(role) { return STAFF_APP_URL; }
+    function readCachedBranding() {
+        try {
+            return JSON.parse(localStorage.getItem(BRANDING_CACHE_KEY)) || null;
+        }
+        catch (_) {
+            return null;
+        }
+    }
+    // ---------- Logo / nombre de la empresa (con caché) ----------
+    function BrandMark({ logo, name }) {
+        const [broken, setBroken] = useState(false);
+        if (logo && !broken) {
+            return React.createElement("img", { src: logo, alt: name, onError: () => setBroken(true) });
+        }
+        return React.createElement(React.Fragment, null, "\uD83C\uDF7D");
+    }
+    // ---------- Selector de tema ----------
+    function ThemeSelect({ theme, onChange }) {
+        return (React.createElement("div", { className: "d-inline-flex align-items-center gap-2" },
+            React.createElement("label", { className: "form-label small text-secondary mb-0", htmlFor: "theme-select" }, "Tema"),
+            React.createElement("select", { className: "form-select form-select-sm", id: "theme-select", style: { width: 'auto' }, value: theme, onChange: e => onChange(e.target.value) },
+                React.createElement("option", { value: "light" }, "Claro"),
+                React.createElement("option", { value: "night" }, "Nocturno"),
+                React.createElement("option", { value: "forest" }, "Bosque"))));
+    }
+    // ---------- Botón "Compartir" ----------
+    // Solo tiene sentido cuando la PWA está instalada: ahí no hay barra de
+    // direcciones de la que copiar el link (display-mode: standalone), así
+    // que no hay ninguna otra forma de pasarle el acceso a otra persona
+    // (un cliente nuevo, un driver nuevo, etc.). Si se abre en una pestaña
+    // normal del navegador, ya tienen la barra de arriba: no lo mostramos
+    // para no ensuciar la pantalla con un botón redundante.
+    function isStandalonePwa() {
+        return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    }
+    const ICON_SHARE = React.createElement("svg", { width: "17", height: "17", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round" },
+        React.createElement("circle", { cx: "18", cy: "5", r: "3" }),
+        React.createElement("circle", { cx: "6", cy: "12", r: "3" }),
+        React.createElement("circle", { cx: "18", cy: "19", r: "3" }),
+        React.createElement("line", { x1: "8.6", y1: "10.6", x2: "15.4", y2: "6.4" }),
+        React.createElement("line", { x1: "8.6", y1: "13.4", x2: "15.4", y2: "17.6" }));
+    const ICON_CHECK = React.createElement("svg", { width: "17", height: "17", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round" },
+        React.createElement("path", { d: "M20 6 9 17l-5-5" }));
+    function ShareAppButton({ brandName }) {
+        const [copied, setCopied] = useState(false);
+        if (!isStandalonePwa())
+            return null;
+        const shareUrl = `${location.origin}${location.pathname}`;
+        async function handleShare() {
+            const shareData = { title: brandName, text: `Ingresá a ${brandName}`, url: shareUrl };
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    return;
+                }
+                catch (_) {
+                    return;
+                } // el usuario canceló el panel de compartir: no hacemos nada más
+            }
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }
+            catch (_) { }
+        }
+        return (React.createElement("button", { type: "button", className: "btn btn-outline-secondary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0", style: { width: 36, height: 36 }, onClick: handleShare, title: copied ? 'Link copiado' : 'Compartir esta app', "aria-label": copied ? 'Link copiado' : 'Compartir esta app' }, copied ? ICON_CHECK : ICON_SHARE));
+    }
+    // ---------- Formulario "Soy cliente" ----------
+    function ClientForm({ active, onError, onClearError }) {
+        const [carnet, setCarnet] = useState('');
+        const [phone, setPhone] = useState('');
+        const [loading, setLoading] = useState(false);
+        async function handleSubmit(e) {
+            e.preventDefault();
+            onClearError();
+            setLoading(true);
+            try {
+                const cleanCarnet = carnet.trim();
+                const cleanPhone = phone.replace(/\D/g, '');
+                const rows = await window.SupabaseDB?.rpc('login_cliente', { p_carnet: cleanCarnet, p_phone: cleanPhone });
+                const client = Array.isArray(rows) ? rows[0] : null;
+                if (!client) {
+                    onError('Carnet o teléfono no coinciden con un cliente registrado.');
+                    return;
+                }
+                sessionStorage.setItem(CLIENT_SESSION_KEY, JSON.stringify({ id: client.id, name: client.name, sessionToken: client.session_token }));
+                window.SupabaseDB?.setSessionToken(client.session_token, 'cliente');
+                window.location.href = CLIENT_PORTAL_URL;
+            }
+            catch (_) {
+                onError('No se pudo conectar. Revisa tu internet e intenta de nuevo.');
+            }
+            finally {
+                setLoading(false);
+            }
+        }
+        return (React.createElement("form", { className: `form-panel${active ? ' active' : ''}`, onSubmit: handleSubmit },
+            React.createElement("div", { className: "mb-3" },
+                React.createElement("label", { className: "form-label", htmlFor: "client-carnet" }, "Carnet de identidad"),
+                React.createElement("input", { className: "form-control", id: "client-carnet", autoComplete: "username", placeholder: "Ej. 12345678", required: true, value: carnet, onChange: e => setCarnet(e.target.value) })),
+            React.createElement("div", { className: "mb-3" },
+                React.createElement("label", { className: "form-label", htmlFor: "client-phone" }, "Tel\u00E9fono"),
+                React.createElement("input", { className: "form-control", id: "client-phone", inputMode: "tel", autoComplete: "current-password", placeholder: "70000000", required: true, value: phone, onChange: e => setPhone(e.target.value) })),
+            React.createElement("button", { className: "btn btn-primary w-100", type: "submit", disabled: loading }, loading ? 'Entrando…' : 'Entrar a mi plan')));
+    }
+    // ---------- Formulario "Soy del equipo" ----------
+    function StaffForm({ active, onError, onClearError }) {
+        const [email, setEmail] = useState('');
+        const [password, setPassword] = useState('');
+        const [showPassword, setShowPassword] = useState(false);
+        const [loading, setLoading] = useState(false);
+        async function handleSubmit(e) {
+            e.preventDefault();
+            onClearError();
+            setLoading(true);
+            try {
+                const cleanEmail = email.trim();
+                const rows = await window.SupabaseDB?.rpc('login_staff', { p_email: cleanEmail, p_password: password });
+                const person = Array.isArray(rows) ? rows[0] : null;
+                if (person?.locked_seconds > 0) {
+                    onError(`Demasiados intentos fallidos. Espera ${person.locked_seconds} segundos e intenta de nuevo.`);
+                    return;
+                }
+            
+                const validPerson = person && typeof person.id === 'string' && person.id.trim() && typeof person.role === 'string' && person.role.trim() && typeof person.session_token === 'string' && person.session_token.trim();
+                if (!validPerson) {
+                    onError('Correo o contraseña incorrectos.');
+                    return;
+                }
+                sessionStorage.setItem(STAFF_SESSION_KEY, JSON.stringify({
+                    id: person.id, name: person.name, role: person.role,
+                    routeId: person.routeId || '', driverId: person.driverId || '',
+                    sessionToken: person.session_token
+                }));
+                window.SupabaseDB?.setSessionToken(person.session_token, 'staff');
+                window.location.href = staffDestination(person.role);
+            }
+            catch (_) {
+                onError('No se pudo conectar. Revisa tu internet e intenta de nuevo.');
+            }
+            finally {
+                setLoading(false);
+            }
+        }
+        return (React.createElement("form", { className: `form-panel${active ? ' active' : ''}`, onSubmit: handleSubmit },
+            React.createElement("div", { className: "mb-3" },
+                React.createElement("label", { className: "form-label", htmlFor: "staff-email" }, "Correo"),
+                React.createElement("input", { className: "form-control", id: "staff-email", type: "email", autoComplete: "username", required: true, value: email, onChange: e => setEmail(e.target.value) })),
+            React.createElement("div", { className: "mb-3" },
+                React.createElement("label", { className: "form-label", htmlFor: "staff-pass" }, "Contrase\u00F1a"),
+                React.createElement("div", { className: "input-group" },
+                    React.createElement("input", { className: "form-control", id: "staff-pass", type: showPassword ? 'text' : 'password', autoComplete: "current-password", required: true, value: password, onChange: e => setPassword(e.target.value) }),
+                    React.createElement("button", { className: "btn btn-outline-secondary", type: "button", "aria-label": showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña', onClick: () => setShowPassword(v => !v) }, showPassword ? '😆' : '😃'))),
+            React.createElement("button", { className: "btn btn-primary w-100", type: "submit", disabled: loading }, loading ? 'Entrando…' : 'Entrar al panel')));
+    }
+    // ---------- App principal ----------
+    function App() {
+        const cached = readCachedBranding();
+        const [theme, setTheme] = useState(() => localStorage.getItem(UI_THEME_KEY) || 'light');
+        const [accessType, setAccessType] = useState('client');
+        const [errorMsg, setErrorMsg] = useState('');
+        const [brandName, setBrandName] = useState(cached?.name || APP_CONFIG.companyName);
+        const [brandLogo, setBrandLogo] = useState(cached?.logo || APP_CONFIG.logoUrl || '');
+        const [whatsappNumber, setWhatsappNumber] = useState(cached?.whatsappNumber || APP_CONFIG.whatsappNumber || '');
+        const redirected = useRef(false);
+     
+        useEffect(() => {
+            document.documentElement.dataset.theme = theme;
+            localStorage.setItem(UI_THEME_KEY, theme);
+        }, [theme]);
+        // Título de la pestaña.
+        useEffect(() => {
+            document.title = `${brandName} · Iniciar sesión`;
+        }, [brandName]);
+     
+        useEffect(() => {
+            if (redirected.current)
+                return;
+            try {
+                const existingStaff = JSON.parse(sessionStorage.getItem(STAFF_SESSION_KEY));
+                if (existingStaff) {
+                    redirected.current = true;
+                    window.location.href = staffDestination(existingStaff.role);
+                    return;
+                }
+                // Mismo chequeo que ya existía para staff, pero para cliente --
+                // antes esta rama no existía, así que un cliente que ya había
+                // iniciado sesión (con la pestaña/PWA todavía viva) igual veía
+                // el formulario de login en vez de ir directo a su portal.
+                const existingClient = JSON.parse(sessionStorage.getItem(CLIENT_SESSION_KEY));
+                if (existingClient) {
+                    redirected.current = true;
+                    window.location.href = CLIENT_PORTAL_URL;
+                }
+            }
+            catch (_) { }
+        }, []);
+   
+        useEffect(() => {
+            let cancelled = false;
+            (async () => {
+                let settings = null;
+                try {
+                    settings = await window.SupabaseDB?.rpc('get_branding', {});
+                }
+                catch (_) { }
+                if (cancelled || !settings)
+                    return;
+                const name = settings.companyName?.trim() || APP_CONFIG.companyName;
+                const logo = settings.logoUrl || APP_CONFIG.logoUrl || '';
+                const whatsapp = settings.whatsappNumber || '';
+                setBrandName(name);
+                setBrandLogo(logo);
+                if (whatsapp)
+                    setWhatsappNumber(whatsapp);
+                try {
+                    localStorage.setItem(BRANDING_CACHE_KEY, JSON.stringify({ name, logo, whatsappNumber: whatsapp }));
+                }
+                catch (_) { }
+            })();
+            return () => { cancelled = true; };
+        }, []);
+        const cleanWhatsapp = String(whatsappNumber || '').replace(/\D/g, '');
+        return (React.createElement("section", { className: "card shadow-lg border-0 rounded-4" },
+            React.createElement("div", { className: "card-body p-4 p-md-5" },
+                React.createElement("div", { className: "brand-row mb-4" },
+                    React.createElement("div", { className: "brand-mark d-inline-flex align-items-center justify-content-center fs-2", id: "brand-mark" },
+                        React.createElement(BrandMark, { logo: brandLogo, name: brandName })),
+                    React.createElement("div", { className: "brand-info" },
+                        React.createElement("h1", { className: "h5 mb-1", id: "brand-title" }, brandName),
+                        React.createElement(ThemeSelect, { theme: theme, onChange: setTheme })),
+                    React.createElement(ShareAppButton, { brandName: brandName })),
+                React.createElement("nav", { className: "nav nav-pills nav-fill bg-body-tertiary rounded-pill p-1 mb-4", "aria-label": "Tipo de acceso" },
+                    React.createElement("button", { type: "button", className: `nav-link${accessType === 'client' ? ' active' : ''}`, onClick: () => { setAccessType('client'); setErrorMsg(''); } }, "Soy cliente"),
+                    React.createElement("button", { type: "button", className: `nav-link${accessType === 'staff' ? ' active' : ''}`, onClick: () => { setAccessType('staff'); setErrorMsg(''); } }, "Soy del equipo")),
+                React.createElement(ClientForm, { active: accessType === 'client', onError: setErrorMsg, onClearError: () => setErrorMsg('') }),
+                React.createElement(StaffForm, { active: accessType === 'staff', onError: setErrorMsg, onClearError: () => setErrorMsg('') }),
+                errorMsg && React.createElement("div", { className: "alert alert-danger mt-3 mb-0", role: "alert" }, errorMsg),
+                cleanWhatsapp && (React.createElement("a", { className: "btn w-100 mt-3 d-flex align-items-center justify-content-center gap-2", id: "whatsapp-support-btn", href: `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent('Hola, necesito ayuda para ingresar a Catering Control.')}`, target: "_blank", rel: "noopener", style: { background: '#25D366', color: '#fff', fontWeight: 650 } },
+                    React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 32", width: "20", height: "20", fill: "currentColor", "aria-hidden": "true" },
+                        React.createElement("path", { d: "M16.004 3C9.377 3 4 8.373 4 15c0 2.386.702 4.607 1.912 6.47L4 29l7.72-1.877A11.94 11.94 0 0 0 16.004 27C22.63 27 28 21.627 28 15S22.63 3 16.004 3zm0 21.75c-1.98 0-3.83-.55-5.41-1.5l-.388-.23-4.58 1.114 1.14-4.46-.253-.4A9.71 9.71 0 0 1 5.25 15c0-5.93 4.82-10.75 10.754-10.75S26.75 9.07 26.75 15 21.938 24.75 16.004 24.75zm5.98-8.06c-.328-.164-1.94-.957-2.24-1.066-.3-.11-.518-.164-.737.164-.218.328-.845 1.066-1.037 1.285-.19.218-.382.246-.71.082-.328-.164-1.385-.51-2.637-1.628-.975-.87-1.633-1.944-1.824-2.272-.19-.328-.02-.505.144-.668.148-.147.328-.383.492-.574.164-.19.218-.328.328-.546.11-.218.055-.41-.027-.574-.082-.164-.737-1.776-1.01-2.432-.266-.64-.537-.553-.737-.563l-.628-.012c-.218 0-.573.082-.873.41-.3.328-1.146 1.12-1.146 2.73 0 1.61 1.174 3.166 1.337 3.384.164.218 2.31 3.53 5.6 4.95.783.338 1.393.54 1.87.69.786.25 1.5.215 2.065.13.63-.094 1.94-.793 2.213-1.56.273-.766.273-1.423.19-1.56-.08-.14-.298-.22-.626-.383z" })),
+                    React.createElement("span", null, "\u00BFNecesitas ayuda? Contactanos"))))));
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
+}
+
+if (window.APP_CONFIG && window.SupabaseDB && window.React && window.ReactDOM) {
+    boot();
+}
+else {
+    const waitForDeps = setInterval(() => {
+        if (window.APP_CONFIG && window.SupabaseDB && window.React && window.ReactDOM) {
+            clearInterval(waitForDeps);
+            boot();
+        }
+    }, 20);
+}
+
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous" defer></script>
+</body>
 </html>
