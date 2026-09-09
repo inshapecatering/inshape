@@ -3,28 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Política de privacidad de Catering Control: qué datos se guardan y cómo se manejan.">
+  <meta name="theme-color" content="#3867f4">
   <title>Catering Control · Política de privacidad</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" href="./icons/favicon-32.png" type="image/png">
   <style>
-    :root { --brand:#3867f4; --text:#172033; --muted:#657188; --line:#dbe2ee; --font:Inter,ui-sans-serif,system-ui,sans-serif; --font-display:Figtree,ui-sans-serif,system-ui,sans-serif; }
+    :root {
+      --brand:#3867f4; --text:#172033; --muted:#657188; --line:#dbe2ee; --bg:#f5f7fb; --surface:#fff;
+      --font:Inter,ui-sans-serif,system-ui,sans-serif; --font-display:Figtree,ui-sans-serif,system-ui,sans-serif;
+      --radius-sm:8px; --radius:16px;
+    }
+    [data-theme="night"] { --text:#eef1f8; --muted:#9aa3b8; --line:#2a3348; --bg:#10141f; --surface:#171d2c; }
+    [data-theme="forest"] { --text:#ecf3ec; --muted:#9fb3a1; --line:#2b3e2d; --bg:#101a12; --surface:#16261a; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:var(--font); color:var(--text); background:#f5f7fb; line-height:1.6; }
+    body { margin:0; font-family:var(--font); color:var(--text); background:var(--bg); line-height:1.6; transition: background .2s, color .2s; }
     .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 70px; }
-    .back { display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; margin-bottom:20px; }
+    .back { display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; margin-bottom:20px; padding:8px 4px; border-radius:var(--radius-sm); }
     .back:hover { color:var(--brand); }
+    .back:focus-visible, .toc a:focus-visible, .crosslink:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
     h1 { font-family:var(--font-display); font-size:1.7rem; margin:0 0 4px; }
     .updated { color:var(--muted); font-size:.85rem; margin-bottom:28px; }
-    h2 { font-family:var(--font-display); font-size:1.05rem; margin:28px 0 8px; }
-    p, li { color:#374156; font-size:.95rem; }
+    h2 { font-family:var(--font-display); font-size:1.2rem; margin:28px 0 8px; }
+    p, li { color:var(--text); font-size:.95rem; }
     ul { padding-left: 20px; }
-    table { width:100%; border-collapse:collapse; margin: 10px 0 6px; font-size:.88rem; }
+    .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; margin: 10px 0 6px; border:1px solid var(--line); border-radius:var(--radius-sm); }
+    table { width:100%; min-width:480px; border-collapse:collapse; font-size:.88rem; }
     th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
     th { color:var(--muted); font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.02em; }
-    .card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px 30px; }
+    .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:28px 30px; }
     .contact { margin-top: 28px; padding-top: 18px; border-top:1px solid var(--line); font-size:.85rem; color:var(--muted); }
+    .crosslink { color:var(--brand); text-decoration:none; }
+    .crosslink:hover { text-decoration:underline; }
   </style>
 </head>
 <body>
@@ -32,18 +44,20 @@
     <a class="back" href="./index.html">&larr; Volver al inicio de sesión</a>
     <div class="card">
       <h1>Política de privacidad</h1>
-      <p class="updated">Última actualización: <span id="updated-date"></span></p>
+      <p class="updated">Última actualización: 8 de septiembre de 2026</p>
 
       <p><b>Catering Control</b> es el software que usa la empresa de catering que te dio acceso a esta cuenta
       para gestionar sus operaciones. Esta página explica qué datos guarda la plataforma y cómo se manejan.</p>
 
       <h2>1. Qué datos se guardan</h2>
-      <table>
-        <tr><th>Quién</th><th>Qué se guarda</th></tr>
-        <tr><td>Clientes del servicio de catering</td><td>Nombre, carnet, teléfono(s), dirección(es) de entrega, plan contratado y notas del pedido</td></tr>
-        <tr><td>Personal (staff)</td><td>Nombre, correo, rol dentro del equipo</td></tr>
-        <tr><td>Drivers</td><td>Nombre, carnet, teléfono, dirección, y foto de perfil (opcional)</td></tr>
-      </table>
+      <div class="table-scroll">
+        <table>
+          <tr><th>Quién</th><th>Qué se guarda</th></tr>
+          <tr><td>Clientes del servicio de catering</td><td>Nombre, carnet, teléfono(s), dirección(es) de entrega, plan contratado y notas del pedido</td></tr>
+          <tr><td>Personal (staff)</td><td>Nombre, correo, rol dentro del equipo</td></tr>
+          <tr><td>Drivers</td><td>Nombre, carnet, teléfono, dirección, y foto de perfil (opcional)</td></tr>
+        </table>
+      </div>
 
       <h2>2. Fotos</h2>
       <p>La plataforma puede generar dos tipos de imágenes:</p>
@@ -70,6 +84,7 @@
       <p>Los registros operativos (clientes, planes, historial de entregas) se conservan mientras la cuenta de
       la empresa esté activa. Las imágenes de respaldo y los comprobantes de pago se conservan solo 7 días,
       como se explica arriba.</p>
+      <p>Además, los datos de los clientes inactivos se eliminan automáticamente de la plataforma a los <b>2 años</b>.</p>
 
       <h2>6. Tus derechos</h2>
       <p>Si querés consultar, corregir o pedir que se elimine tu información personal, comunicate directamente
@@ -80,11 +95,17 @@
       <p>Esta política puede actualizarse. Los cambios relevantes se reflejarán en la fecha de "Última
       actualización" de esta página.</p>
 
-      <div class="contact">¿Preguntas sobre esta política? Contactá a la empresa que te dio acceso a esta cuenta, o a quien te haya provisto la plataforma.</div>
+      <div class="contact">
+        ¿Preguntas sobre esta política? Contactá a la empresa que te dio acceso a esta cuenta, o a quien te haya provisto la plataforma.
+        <br><a class="crosslink" href="./terminos.html">Ver también los Términos y condiciones →</a>
+      </div>
     </div>
   </div>
   <script>
-    document.getElementById('updated-date').textContent = new Date().toLocaleDateString('es-BO', { year: 'numeric', month: 'long', day: 'numeric' });
+    try {
+      var t = localStorage.getItem('theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
   </script>
 </body>
 </html>

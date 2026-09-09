@@ -21,6 +21,7 @@
       --line: #dbe2ee;
       --primary: #3867f4;
       --primary-ink: #fff;
+      --primary-solid: var(--primary);
       --accent: #15a77f;
       --danger: #e4002b;
       --warning: #f4a940;
@@ -28,6 +29,13 @@
       --radius: 12px;
       --radius-sm: 8px;
       --radius-lg: 16px;
+      /* Escala tipografica: usar estos tokens en vez de tamanos sueltos (11px, 13px, 17px...) */
+      --fs-xs: 11px;
+      --fs-sm: 12px;
+      --fs-base: 14px;
+      --fs-md: 16px;
+      --fs-lg: 20px;
+      --fs-xl: 25px;
       --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
       --font-display: Figtree, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
       color-scheme: light;
@@ -49,6 +57,7 @@
       --line: #324158;
       --primary: #7296ff;
       --primary-ink: #0f1726;
+      --primary-solid: #3867f4;
       --accent: #51cfaa;
       --danger: #ff4d4d;
       --warning: #ffc466;
@@ -75,7 +84,7 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font: 14px/1.35 var(--font);
+      font: var(--fs-base)/1.35 var(--font);
       transition: background .2s, color .2s;
     }
     button, input, select, textarea { font: inherit; }
@@ -95,11 +104,11 @@
     button:hover { filter: brightness(.97); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.13); }
     button:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
     button.primary, button.refresh {
-      background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 78%, white 22%), var(--primary));
-      color: var(--primary-ink);
-      box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 38%, transparent);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--primary-solid) 78%, white 22%), var(--primary-solid));
+      color: #fff;
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--primary-solid) 38%, transparent);
     }
-    button.primary:hover, button.refresh:hover { box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 42%, transparent); }
+    button.primary:hover, button.refresh:hover { box-shadow: 0 8px 22px color-mix(in srgb, var(--primary-solid) 42%, transparent); }
     button.danger {
       background: linear-gradient(135deg, color-mix(in srgb, var(--danger) 78%, white 22%), var(--danger));
       color: #fff;
@@ -120,7 +129,7 @@
     button.success:hover { box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 42%, transparent); }
     button.warning {
       background: linear-gradient(135deg, color-mix(in srgb, var(--warning) 78%, white 22%), var(--warning));
-      color: #402a00;
+      color: #fff;
       box-shadow: 0 4px 14px color-mix(in srgb, var(--warning) 38%, transparent);
     }
     button.warning:hover { box-shadow: 0 8px 22px color-mix(in srgb, var(--warning) 42%, transparent); }
@@ -152,6 +161,14 @@
       outline: none;
       min-height: 36px;
       transition: border-color .15s, box-shadow .15s;
+    }
+    /* Safari/iOS le da a los campos de fecha (y mes/hora) un ancho minimo
+       de contenido que ignora el "width:100%" de arriba en cuanto el input
+       vive dentro de un grid o flex (como los <label> de .form-grid): el
+       campo se desborda de su recuadro en vez de encogerse. Con
+       min-width:0 se deja que el ancho real lo defina el contenedor. */
+    input[type="date"], input[type="month"], input[type="time"], input[type="datetime-local"] {
+      min-width: 0;
     }
     input[type="checkbox"], input[type="radio"] {
       width: auto;
@@ -205,6 +222,9 @@
     .brand strong, .profile b { font-family: var(--font-display); }
     h1, h2, h3, p { margin-top: 0; }
     h1, h2, h3 { font-family: var(--font-display); font-weight: 700; }
+    h1 { font-size: var(--fs-xl); }
+    h2 { font-size: var(--fs-lg); }
+    h3 { font-size: var(--fs-md); }
     .muted { color: var(--muted); }
     .stack { display: grid; gap: 12px; }
     .plan-options { display: grid; gap: 10px; }
@@ -229,7 +249,7 @@
       border-color: var(--danger);
       background: color-mix(in srgb, var(--danger) 6%, transparent);
     }
-    label { display: grid; gap: 5px; font-weight: 650; font-size: 12px; min-width: 0; }
+    label { display: grid; gap: 5px; font-weight: 650; font-size: var(--fs-sm); min-width: 0; }
 
     #app {
       min-height: 100vh;
@@ -264,11 +284,13 @@
     .menu-toggle {
       display: none;
       background: transparent;
-      font-size: 24px;
       padding: 4px 8px;
       min-height: auto;
       color: var(--text);
+      border: 1px solid var(--line);
+      box-shadow: none;
     }
+    .menu-toggle svg { display: block; }
     .collapse-toggle {
       display: block;
       background: transparent;
@@ -390,7 +412,7 @@
       align-items: flex-start;
       margin-bottom: 20px;
     }
-    .page-head h1 { font-size: 25px; margin: 0 0 5px; }
+    .page-head h1 { font-size: var(--fs-xl); margin: 0 0 5px; }
     .page-head p { color: var(--muted); margin: 0; }
     .head-actions {
       display: flex;
@@ -469,6 +491,7 @@
       margin-bottom: 0;
     }
     .sheet table.table > :not(caption) > * > * { box-shadow: none; color: inherit; }
+    .table td b, .table th b { font-family: var(--font-display); color: var(--text); font-weight: 700; }
     th, td {
       border-right: 1px solid var(--line);
       border-bottom: 1px solid var(--line);
@@ -489,6 +512,8 @@
       color: var(--muted);
       text-transform: uppercase;
       user-select: none;
+      font-family: var(--font-display);
+      font-weight: 700;
     }
     th[data-sort] { cursor: pointer; }
     th[data-sort]:hover { color: var(--primary); }
@@ -578,7 +603,20 @@
       color: var(--primary);
       min-height: auto;
     }
-    .icon-btn.delete { color: var(--danger); }
+    .icon-btn.delete {
+      color: var(--danger);
+      background: color-mix(in srgb, var(--danger) 13%, transparent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .icon-btn.delete:hover { background: color-mix(in srgb, var(--danger) 24%, transparent); }
     .sort-ind {
       font-size: 9px;
       margin-left: 3px;
@@ -608,6 +646,7 @@
     .note-date { margin-left: auto; font-size: 12px; white-space: nowrap; }
     .note-text { margin: 0; white-space: pre-wrap; word-break: break-word; }
     .note-client { margin: 0; font-size: 12.5px; }
+    .note-client-name { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-base); color: var(--text); }
     .note-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
     [data-theme="night"] .badge.active { color: #8cf0ce; background: #164c3b; }
     [data-theme="night"] .badge.paused { color: #ffd58e; background: #5e4318; }
@@ -718,10 +757,65 @@
       gap: 9px;
       padding: 12px;
       background: var(--surface-2);
-      border-radius: 99px;
+      border-radius: var(--radius);
     }
-    .items-grid label { font-size: 11px; }
+    .items-grid label { font-size: var(--fs-xs); }
     .items-grid input { padding: 6px; min-height: auto; }
+    /* Secciones con color para diferenciar bloques en formularios largos
+       (ej. ficha de cliente). El bug anterior de .items-grid (border-radius:
+       99px en una caja de varias filas) hacía que el fondo se viera "corto"
+       en las esquinas; con var(--radius) el fondo cubre bien todo el
+       recuadro, y reusamos el mismo criterio acá. */
+    .form-section {
+      grid-column: 1 / -1;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      background: var(--surface-2);
+    }
+    .form-section-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .form-section-grid .wide { grid-column: 1 / -1; }
+    .form-section.tone-primary {
+      background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+      border-color: color-mix(in srgb, var(--primary) 30%, var(--line));
+    }
+    .form-section.tone-accent {
+      background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+      border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+    }
+    .form-section.tone-warning {
+      background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+      border-color: color-mix(in srgb, var(--warning) 35%, var(--line));
+    }
+    .form-section.tone-danger {
+      background: color-mix(in srgb, var(--danger) 6%, var(--surface));
+      border-color: color-mix(in srgb, var(--danger) 20%, var(--line));
+    }
+    .plan-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--line);
+      background: var(--surface);
+      margin-bottom: 4px;
+    }
 
     dialog {
       border: 0;
@@ -757,7 +851,7 @@
       border-bottom: 1px solid var(--line);
       flex: 0 0 auto;
     }
-    .app-modal-head h2 { font-size: 17px; margin: 0; }
+    .app-modal-head h2 { font-size: var(--fs-md); margin: 0; }
     .app-modal-body {
       padding: 18px 19px;
       overflow-y: auto;
@@ -773,6 +867,9 @@
       gap: 8px;
       flex: 0 0 auto;
       background: var(--surface);
+      box-shadow: 0 -4px 10px rgba(0,0,0,.04);
+      position: relative;
+      z-index: 1;
     }
     .close {
       padding: 3px 8px;
@@ -837,7 +934,24 @@
       max-width: 100%;
       min-width: 0;
       box-sizing: border-box;
+      font-size: var(--fs-xs);
+      color: var(--muted);
+      padding: 4px 4px 4px 0;
     }
+    input[type="file"]::file-selector-button {
+      font-family: var(--font-display);
+      font-weight: 650;
+      font-size: var(--fs-xs);
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: pointer;
+      margin-right: 8px;
+      transition: background .15s;
+    }
+    input[type="file"]::file-selector-button:hover { background: var(--bg); }
 
     .payroll td, .payroll th { text-align: center; padding: 7px; min-width: 52px; }
     .payroll th:first-child, .payroll td:first-child {
@@ -1101,6 +1215,8 @@
       .sheet { max-height: calc(100vh - 280px); }
       .form-grid { grid-template-columns: 1fr; }
       .items-grid { grid-template-columns: repeat(2, 1fr); border-radius: var(--radius); }
+      .form-section-grid { grid-template-columns: 1fr; }
+      .plan-summary-row { flex-direction: column; align-items: stretch; }
     }
     @media (max-width: 480px) {
       .summary-grid { grid-template-columns: 1fr 1fr; }
@@ -1180,7 +1296,7 @@
           <div><b id="current-name">Operaciones</b><small class="muted" id="current-role" style="display:block;font-size:10px;">Administrador</small></div>
         </div>
         <div class="aside-bottom-actions">
-          <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">☰</button>
+          <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></button>
           <span class="btn-sep" aria-hidden="true">•</span>
           <button class="refresh" id="manual-sync-btn" title="Actualizar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="btn-text"> Actualizar</span></button>
           <div class="sync-pill" id="sync-pill" title="Estado de sincronización"><span class="sync-dot" id="sync-dot"></span><span id="sync-text" class="sync-text-label">Listo</span></div>
@@ -1470,19 +1586,14 @@ document.addEventListener('DOMContentLoaded', () => {
         store[ukey].hiddenColumns=hidden;
         writeColPrefsStore(store);
       }
-      function readUserThemeStore(){ try { return JSON.parse(localStorage.getItem(USER_THEME_KEY)) || {}; } catch (_) { return {}; } }
-      function userTheme(){
-        const store=readUserThemeStore(), key=activeUser?.id || 'default';
-        if(!store[key]){
-          store[key]=localStorage.getItem(UI_THEME_KEY)||'light';
-          localStorage.setItem(USER_THEME_KEY,JSON.stringify(store));
-        }
-        return store[key];
-      }
+      // El tema ahora es unico por dispositivo (misma llave que usan
+      // login.html y cliente.html), no por usuario: si lo cambias aca,
+      // debe verse igual al volver al login o entrar al portal del
+      // cliente en el mismo navegador. USER_THEME_KEY queda sin uso (se
+      // deja declarada por compatibilidad con datos viejos).
+      function userTheme(){ return localStorage.getItem(UI_THEME_KEY)||'light'; }
       function saveUserTheme(theme){
-        const store=readUserThemeStore(), key=activeUser?.id || 'default';
-        store[key]=theme;
-        localStorage.setItem(USER_THEME_KEY,JSON.stringify(store));
+        localStorage.setItem(UI_THEME_KEY,theme);
       }
       function readDriverViewDateStore(){ try{ return JSON.parse(localStorage.getItem(DRIVER_VIEW_DATE_KEY))||{}; }catch(_){ return {}; } }
       function realToday(){ return cachedServerDate || today(); }
@@ -2633,11 +2744,73 @@ document.addEventListener('DOMContentLoaded', () => {
           {key:'paidDays',label:'Días pagados',cell:c=>n(c.paidDays)},
           {key:'consumedDays',label:'Consumidos',cell:c=>n(c.consumedDays)},
           {key:'specialDiet',label:'Dieta especial',cell:c=>esc(c.specialDiet||'—')},
-          {key:'id',label:'Acciones',cell:c=>canEditPage('clients')?`${status(c)==='Pausado'?`<button class="icon-btn" data-action="resume-client" data-id="${c.id}">Activar</button>`:`<button class="icon-btn" data-action="pause-client" data-id="${c.id}">Pausar</button>`}<button class="icon-btn" data-action="edit-client" data-id="${c.id}">Editar</button><button class="icon-btn delete" data-action="delete-client" data-id="${c.id}">×</button>`:'—'}
+          {key:'id',label:'Acciones',cell:c=>canEditPage('clients')?`${status(c)==='Pausado'?`<button class="icon-btn" data-action="resume-client" data-id="${c.id}">Activar</button>`:`<button class="icon-btn" data-action="pause-client" data-id="${c.id}">Pausar</button>`}<button class="icon-btn" data-action="renew-client" data-id="${c.id}">Renovar</button><button class="icon-btn" data-action="edit-client" data-id="${c.id}">Editar</button><button class="icon-btn delete" data-action="delete-client" data-id="${c.id}">×</button>`:'—'}
         ];
         $('#clients-page').innerHTML=pageHead('Clientes','Ficha completa, plan alimenticio y datos de entrega.',canEditPage('clients')?'<button class="primary" data-action="add-client">+ Añadir cliente</button>':'')+`<div class="toolbar"><input id="clients-search" class="search" placeholder="Buscar clientes…" value="${esc(ui.search.clients||'')}"><span class="spacer"></span><span class="muted">${list.length} clientes</span></div>`+orderedTable(list,definitions,'clients',c=>c.id); bindSearch('clients-search','clients',renderClients);
       }
-      function clientForm(c={}){ return `<div class="form-grid"><label>Nombre completo *<input name="name" required value="${esc(c.name)}"></label><label>Carnet *<input name="carnet" required value="${esc(c.carnet)}"></label><div class="wide"><label>Direcciones</label><p class="muted" style="margin:2px 0 8px">Agrega una o varias direcciones de entrega. La ruta de cada una define automáticamente su driver.</p><div id="client-addresses-rows"></div><button type="button" class="outline" id="add-address-row">+ Añadir dirección</button><div id="client-active-address-wrap"></div></div><label>Teléfono 1 *<input name="phone1" required value="${esc(c.phone1)}"></label><label>Teléfono 2<input name="phone2" value="${esc(c.phone2)}"></label><label>Plan asignado<select name="planId">${options(state.plans,c.planId,'Sin plan')}</select></label>${c.pendingPlan?(()=>{const daysLeftOld=Math.max(0,n(c.pendingPlan.activateAtConsumedDays)-n(c.consumedDays));const daysNew=Math.max(0,n(c.paidDays)-n(c.pendingPlan.activateAtConsumedDays));return `<div class="wide plan-option is-alt" style="margin:0"><div class="plan-option-info"><b>Cambio de plan programado</b><span class="muted">Le quedan ${daysLeftOld} día(s) con el plan actual ("${esc(planName(c.planId))}"), después pasa a "${esc(planName(c.pendingPlan.planId))}" por ${daysNew} día(s) más (${n(c.paidDays)} en total).</span></div><label style="display:flex;align-items:center;gap:6px;flex-direction:row;font-weight:400"><input type="checkbox" name="cancelPendingPlan"> Cancelar este cambio programado</label></div>`;})():''}<div class="wide" id="plan-change-choice" hidden><div class="plan-options"><label class="plan-option" style="cursor:pointer"><div class="plan-option-info"><b>Cambiar de inmediato</b><span class="muted">El plan nuevo y sus días empiezan a contar desde hoy.</span></div><input type="radio" name="planChangeMode" value="immediate" checked></label><label class="plan-option" style="cursor:pointer"><div class="plan-option-info"><b>Conservar los días actuales y sumar</b><span class="muted">Termina primero el plan actual y pasa solo al nuevo cuando se acaben esos días.</span></div><input type="radio" name="planChangeMode" value="carry"></label></div></div><label>Estado del plan<select name="status" id="client-status">${['Activo','Pausado','Retorno pendiente','Programado'].map(s=>`<option ${c.status===s?'selected':''}>${s}</option>`).join('')}</select></label><label>Fecha de inicio<input name="startDate" type="date" value="${esc(c.startDate)}"></label><label>Fecha de retorno${!pageNeedsPremium('returnDate')?`<input name="returnDate" id="client-returndate" type="date" min="${nextDay(lastProcessedDate()||state.currentDate)}" value="${c.status==='Programado'?esc(c.returnDate):''}" ${c.status==='Programado'?'':'disabled'}>`:` <span class="muted" style="font-weight:400">🔒 Función Premium — contacta a tu proveedor</span><input type="hidden" name="returnDate" value="${esc(c.returnDate)}">`}</label><label>Días pagados<input name="paidDays" type="number" min="0" value="${n(c.paidDays)}"></label><label>Días consumidos<input name="consumedDays" type="number" min="0" value="${n(c.consumedDays)}"></label><label>Carreras por entrega<select name="career"><option value="1" ${n(c.career)!==2&&n(c.career)!==3?'selected':''}>Corto (1)</option><option value="2" ${n(c.career)===2?'selected':''}>Largo (2)</option><option value="3" ${n(c.career)===3?'selected':''}>Muy Largo (3)</option></select></label><label>Cantidad de bolsas<input name="bags" type="number" min="0" value="${n(c.bags)}"></label><label class="wide">Dieta especial<textarea name="specialDiet">${esc(c.specialDiet)}</textarea></label><div class="wide"><label>Artículos incluidos</label><p class="muted" style="margin:2px 0 8px">Se autorrellenan al elegir un plan arriba; puedes editarlos manualmente después.</p>${itemFields(c.items || plan(c.planId)?.items || {})}</div><div class="wide">${!pageNeedsPremium('weeklySchedule')?`<label>Horario semanal (opcional)</label><p class="muted" style="margin:2px 0 8px">Marca los días de la semana en que este cliente recibe entrega y a qué dirección (ej.: Lun/Mié/Vie a una dirección, Mar/Jue a otra). <b>Si cargas al menos una franja, los días que no queden en ninguna quedan fuera del reparto</b> (no se le descuenta el día ni aparece en Despacho/Reparto esos días) hasta que termine su plan. Si no cargas ninguna franja, el cliente sigue yendo todos los días como siempre, usando su dirección activa.</p><div id="client-schedule-rows"></div><button type="button" class="outline" id="add-schedule-row">+ Agregar franja de días</button>`:`<label>Horario semanal</label>${premiumLockHtml('Horario semanal')}`}</div></div>`; }
+      function clientForm(c={}){
+        const isExisting=!!c.id;
+        const hasRemainingBalance=isExisting && n(c.paidDays)>n(c.consumedDays);
+        const remaining=Math.max(0,n(c.paidDays)-n(c.consumedDays));
+        const planBlock = isExisting ? `
+          <div class="plan-summary-row">
+            <div class="plan-option-info"><b>Plan asignado: ${esc(planName(c.planId))}</b><span class="muted">${n(c.paidDays)?`${n(c.consumedDays)} de ${n(c.paidDays)} día(s) consumidos · quedan ${remaining}`:'Sin días cargados todavía'}</span></div>
+            <div class="plan-option-actions">
+              <button type="button" class="outline" data-action="renew-client-inline" data-id="${c.id}">🔄 Renovar</button>
+              <button type="button" class="outline" data-action="change-client-plan-inline" data-id="${c.id}">➕ Añadir nuevo plan</button>
+            </div>
+          </div>
+          <p class="muted" style="margin:0 0 4px">Usa estos botones para sumar días o cambiar de plan: los días pagados/consumidos no se resetean, se acumulan para poder ver la antigüedad y el consumo real del cliente. Si necesitas ajustar los números a mano, hazlo desde aquí abajo.</p>
+          <input type="hidden" name="planId" value="${esc(c.planId)}">
+        ` : `<label>Plan asignado<select name="planId">${options(state.plans,c.planId,'Sin plan')}</select></label>`;
+        const pendingPlanBlock = c.pendingPlan?(()=>{const daysLeftOld=Math.max(0,n(c.pendingPlan.activateAtConsumedDays)-n(c.consumedDays));const daysNew=Math.max(0,n(c.paidDays)-n(c.pendingPlan.activateAtConsumedDays));return `<div class="wide plan-option is-alt" style="margin:0"><div class="plan-option-info"><b>Cambio de plan programado</b><span class="muted">Le quedan ${daysLeftOld} día(s) con el plan actual ("${esc(planName(c.planId))}"), después pasa a "${esc(planName(c.pendingPlan.planId))}" por ${daysNew} día(s) más (${n(c.paidDays)} en total).</span></div><label style="display:flex;align-items:center;gap:6px;flex-direction:row;font-weight:400"><input type="checkbox" name="cancelPendingPlan"> Cancelar este cambio programado</label></div>`;})():'';
+        const planChangeChoiceBlock = isExisting ? '' : `<div class="wide" id="plan-change-choice" hidden><div class="plan-options"><label class="plan-option" style="cursor:pointer"><div class="plan-option-info"><b>Cambiar de inmediato</b><span class="muted">El plan nuevo y sus días empiezan a contar desde hoy.</span></div><input type="radio" name="planChangeMode" value="immediate" checked></label><label class="plan-option" style="cursor:pointer"><div class="plan-option-info"><b>Conservar los días actuales y sumar</b><span class="muted">Termina primero el plan actual y pasa solo al nuevo cuando se acaben esos días.</span></div><input type="radio" name="planChangeMode" value="carry"></label></div></div>`;
+        const daysFieldsBlock = isExisting
+          ? `<input type="hidden" name="paidDays" value="${n(c.paidDays)}"><input type="hidden" name="consumedDays" value="${n(c.consumedDays)}">`
+          : `<label>Días pagados<input name="paidDays" type="number" min="0" value="${n(c.paidDays)}"></label><label>Días consumidos<input name="consumedDays" type="number" min="0" value="${n(c.consumedDays)}"></label>`;
+        return `<div class="form-grid">
+          <div class="form-section tone-primary">
+            <div class="form-section-title">🧾 Datos del cliente</div>
+            <div class="form-section-grid">
+              <label>Nombre completo *<input name="name" required value="${esc(c.name)}"></label>
+              <label>Carnet *<input name="carnet" required value="${esc(c.carnet)}"></label>
+              <label>Teléfono 1 *<input name="phone1" required value="${esc(c.phone1)}"></label>
+              <label>Teléfono 2<input name="phone2" value="${esc(c.phone2)}"></label>
+            </div>
+          </div>
+          <div class="form-section tone-accent">
+            <div class="form-section-title">📍 Direcciones</div>
+            <p class="muted" style="margin:2px 0 8px">Agrega una o varias direcciones de entrega. La ruta de cada una define automáticamente su driver.</p>
+            <div id="client-addresses-rows"></div>
+            <button type="button" class="outline" id="add-address-row">+ Añadir dirección</button>
+            <div id="client-active-address-wrap"></div>
+          </div>
+          <div class="form-section tone-warning">
+            <div class="form-section-title">🍽️ Plan y estado del servicio</div>
+            <div class="form-section-grid">
+              <div class="wide">${planBlock}</div>
+              ${pendingPlanBlock?`<div class="wide">${pendingPlanBlock}</div>`:''}
+              ${planChangeChoiceBlock}
+              <label>Estado del plan<select name="status" id="client-status">${['Activo','Pausado','Retorno pendiente','Programado'].map(s=>`<option ${c.status===s?'selected':''}>${s}</option>`).join('')}</select></label>
+              <label>Fecha de inicio<input name="startDate" type="date" value="${esc(c.startDate)}"></label>
+              <label>Fecha de retorno${!pageNeedsPremium('returnDate')?`<input name="returnDate" id="client-returndate" type="date" min="${nextDay(lastProcessedDate()||state.currentDate)}" value="${c.status==='Programado'?esc(c.returnDate):''}" ${c.status==='Programado'?'':'disabled'}>`:` <span class="muted" style="font-weight:400">🔒 Función Premium — contacta a tu proveedor</span><input type="hidden" name="returnDate" value="${esc(c.returnDate)}">`}</label>
+              ${daysFieldsBlock}
+              <label>Carreras por entrega<select name="career"><option value="1" ${n(c.career)!==2&&n(c.career)!==3?'selected':''}>Corto (1)</option><option value="2" ${n(c.career)===2?'selected':''}>Largo (2)</option><option value="3" ${n(c.career)===3?'selected':''}>Muy Largo (3)</option></select></label>
+              <label>Cantidad de bolsas<input name="bags" type="number" min="0" value="${n(c.bags)}"></label>
+              <label class="wide">Dieta especial<textarea name="specialDiet">${esc(c.specialDiet)}</textarea></label>
+            </div>
+          </div>
+          <div class="form-section tone-accent">
+            <div class="form-section-title">🥗 Artículos incluidos</div>
+            <p class="muted" style="margin:2px 0 8px">Se autorrellenan al elegir un plan arriba; puedes editarlos manualmente después.</p>
+            ${itemFields(c.items || plan(c.planId)?.items || {})}
+          </div>
+          <div class="form-section tone-danger">
+            <div class="form-section-title">🗓️ Horario semanal</div>
+            ${!pageNeedsPremium('weeklySchedule')?`<p class="muted" style="margin:2px 0 8px">Marca los días de la semana en que este cliente recibe entrega y a qué dirección (ej.: Lun/Mié/Vie a una dirección, Mar/Jue a otra). <b>Si cargas al menos una franja, los días que no queden en ninguna quedan fuera del reparto</b> (no se le descuenta el día ni aparece en Despacho/Reparto esos días) hasta que termine su plan. Si no cargas ninguna franja, el cliente sigue yendo todos los días como siempre, usando su dirección activa.</p><div id="client-schedule-rows"></div><button type="button" class="outline" id="add-schedule-row">+ Agregar franja de días</button>`:premiumLockHtml('Horario semanal')}
+          </div>
+        </div>`;
+      }
       function scrollToRow(id){
         requestAnimationFrame(()=>{
           const row=document.querySelector(`tr[data-id="${id}"]`);
@@ -2735,6 +2908,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         initAddressEditor(form, c?.addresses||[], c?.activeAddressId||'');
         initScheduleEditor(form, c?.schedule||[]);
+      }
+      // "Renovar": suma días al plan del cliente en vez de tener que editar
+      // a mano el campo "Días pagados". Dos casos:
+      //  - Mismo plan (el caso más común: "está en Almuerzo y renueva
+      //    Almuerzo") -> simplemente c.paidDays += días a agregar. Si
+      //    además tiene un cambio de plan programado (pendingPlan), el
+      //    umbral en el que se activa también se corre esos mismos días,
+      //    para que no salte antes de tiempo.
+      //  - Plan distinto -> si todavía le quedan días del plan actual, se
+      //    ofrece la misma elección que ya existe al editar un cliente
+      //    (cambiar de inmediato / conservar y sumar en cola). Si ya no le
+      //    quedan días (Retorno pendiente, el caso típico de "se le venció
+      //    y renueva"), no hay nada que conservar: pasa directo al plan
+      //    nuevo sumando los días indicados.
+      // En cualquier caso, si el cliente estaba Pausado o en Retorno
+      // pendiente, la renovación también lo reactiva (vuelve a Activo).
+      function openRenewClient(id, fromNoteId, initialMode='renew', returnToEdit=false){
+        const c=state.clients.find(x=>x.id===id);if(!c)return;
+        const hasRemainingBalance=n(c.paidDays)>n(c.consumedDays);
+        const remaining=Math.max(0,n(c.paidDays)-n(c.consumedDays));
+        const isChangeMode=initialMode==='change';
+        // En modo "Añadir nuevo plan" no se preselecciona ningún plan (antes
+        // elegía automáticamente el primero distinto al actual, lo que se
+        // sentía como un plan "adivinado" al azar); se deja en blanco para
+        // que el usuario elija a propósito.
+        const defaultPlanId=isChangeMode?'':c.planId;
+        const showChoiceByDefault=isChangeMode && defaultPlanId && defaultPlanId!==c.planId && hasRemainingBalance;
+        const html=`<div class="form-grid">
+          <div class="wide plan-summary-row" style="margin:0"><div class="plan-option-info"><b>${esc(c.name)}</b><span class="muted">Plan actual: ${esc(planName(c.planId))} · ${hasRemainingBalance?`le quedan ${remaining} día(s)`:'sin días restantes (Retorno pendiente)'}</span></div></div>
+          <label>${isChangeMode?'Nuevo plan':'Plan a renovar'}<select name="planId">${options(state.plans,defaultPlanId,isChangeMode?'Elige un plan…':'Sin plan')}</select></label>
+          <label>Días a agregar *<input name="days" type="number" min="1" step="1" required value="${n(plan(defaultPlanId)?.serviceDays)||''}"></label>
+          <div class="wide" id="renew-plan-change-choice" ${showChoiceByDefault?'':'hidden'}><div class="plan-options"><label class="plan-option" style="cursor:pointer"><div class="plan-option-info"><b>Cambiar de inmediato</b><span class="muted">Se pierden los días restantes del plan actual; el nuevo plan y sus días empiezan a contar desde hoy.</span></div><input type="radio" name="planChangeMode" value="immediate" ${showChoiceByDefault?'':'checked'}></label><label class="plan-option" style="cursor:pointer"><div class="plan-option-info"><b>Conservar los días actuales y sumar</b><span class="muted">Termina primero el plan actual y pasa al nuevo recién cuando se acaben esos días.</span></div><input type="radio" name="planChangeMode" value="carry" ${showChoiceByDefault?'checked':''}></label></div></div>
+        </div>`;
+        showModal(isChangeMode?'Añadir nuevo plan':'Renovar plan',html,async f=>{
+          const data=Object.fromEntries(new FormData(f));
+          const days=n(data.days);
+          if(!days || days<1){ notice('Ingresa cuántos días agregar.',true); return false; }
+          const samePlan=!data.planId || data.planId===c.planId;
+          if(samePlan){
+            c.paidDays=n(c.paidDays)+days;
+            if(c.pendingPlan) c.pendingPlan.activateAtConsumedDays=n(c.pendingPlan.activateAtConsumedDays)+days;
+          } else {
+            const newPlan=plan(data.planId);
+            const mode=data.planChangeMode||'immediate';
+            if(hasRemainingBalance && mode==='carry'){
+              const threshold=n(c.paidDays);
+              c.paidDays=threshold+days;
+              c.pendingPlan={planId:data.planId,activateAtConsumedDays:threshold};
+            } else {
+              c.planId=data.planId;
+              c.items=newPlan?.items||{};
+              c.paidDays=n(c.paidDays)+days;
+              c.pendingPlan=null;
+            }
+          }
+          if(c.status==='Pausado' || c.status==='Retorno pendiente'){ c.status='Activo'; c.pauseStart=''; c.pauseDates=[]; }
+          const saved=await save();
+          if(!saved)return false;
+          renderPage(ui.page);notice(samePlan?`Plan de ${c.name} renovado.`:`Nuevo plan asignado a ${c.name}.`);
+          scrollToRow(c.id);
+          logAudit(samePlan?'Cliente renovado':'Nuevo plan asignado','client',c.name,c.id,{plan:planName(c.planId),diasAgregados:days,modo:samePlan?'mismo-plan':(data.planChangeMode||'immediate')});
+          if(fromNoteId) await markNoteDone(fromNoteId);
+        }, returnToEdit?()=>openClient(id):null);
+        const form=$('#modal-form'), planField=form?.elements.planId, daysField=form?.elements.days, choiceWrap=$('#renew-plan-change-choice');
+        if(planField) planField.onchange=()=>{
+          const p=plan(planField.value);
+          if(daysField && p?.serviceDays) daysField.value=n(p.serviceDays);
+          const isDifferentPlan=planField.value && planField.value!==c.planId;
+          if(choiceWrap){ choiceWrap.hidden=!(isDifferentPlan && hasRemainingBalance); if(!choiceWrap.hidden) form.elements.planChangeMode.value=isDifferentPlan?'carry':'immediate'; }
+        };
       }
       function openQuickStatus(id){
         const c=state.clients.find(x=>x.id===id);if(!c)return;
@@ -2876,9 +3119,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // suben admin/editor/driver al marcar una entrega (folder 'delivery').
       // Esas fotos no se reemplazan solas como el logo o el QR -- si nadie
       // las borra a mano, se quedan para siempre en Storage. Revisa TODAS
-      // las fechas (no solo el día en pantalla), por eso usa
-      // dbGetAllDeliveryStatus en vez de deliveryCache (que solo tiene
-      // cargadas las fechas que el usuario fue abriendo).
+      // las fechas (no solo el día en pantalla), por eso pide el historial
+      // completo de db_delivery_status en vez de usar deliveryCache (que
+      // solo tiene cargadas las fechas que el usuario fue abriendo).
       async function cleanupOldDeliveryPhotos(){
         if(!canEditPage('dispatch')) return;
         const PHOTO_MAX_AGE_MS=7*24*60*60*1000;
@@ -2910,6 +3153,56 @@ document.addEventListener('DOMContentLoaded', () => {
         if(ui.page==='delivery') renderDelivery();
         if(!ok) console.warn('No se pudo guardar la limpieza de fotos de entrega vencidas.');
       }
+      function daysSince(dateStr, refStr){
+        const d=new Date(dateStr), r=new Date(refStr);
+        if(isNaN(d)||isNaN(r)) return null;
+        return Math.floor((r-d)/86400000);
+      }
+      // Regla de retención: un cliente en "Retorno pendiente" (agotó sus
+      // días pagados, sin renovar) y SIN ninguna entrega marcada durante 2
+      // años seguidos se borra directamente -- junto con sus fotos de
+      // entrega en Storage, para no dejar huérfanos. Sin etapa intermedia
+      // de archivado: hasta el día antes de cumplir los 2 años el cliente
+      // sigue funcionando 100% normal (incluido su acceso al portal).
+      // La "última actividad" es la fecha de entrega más reciente en
+      // db_delivery_status; si el cliente nunca tuvo ninguna entrega
+      // registrada, se usa su startDate como referencia, para no borrar
+      // por error a un cliente recién creado que todavía no tuvo su
+      // primera entrega.
+      async function cleanupInactiveClients(){
+        if(!canEditPage('clients')) return;
+        const DELETE_AFTER_DAYS=730; // 2 años
+        const refDate=workDate?.()||state.currentDate||today();
+        let rows;
+        try{ rows = await window.SupabaseDB?.dbGetAllDeliveryStatus(null); }catch(_){ rows = null; }
+        const lastDeliveryByClient={};
+        if(Array.isArray(rows)){
+          for(const r of rows){
+            if(!r.date) continue;
+            if(!lastDeliveryByClient[r.clientId] || r.date>lastDeliveryByClient[r.clientId]) lastDeliveryByClient[r.clientId]=r.date;
+          }
+        }
+        const toDelete=[];
+        for(const c of state.clients){
+          if(status(c, refDate)!=='Retorno pendiente') continue;
+          const lastActivity=lastDeliveryByClient[c.id] || c.startDate || '';
+          if(!lastActivity) continue; // sin ninguna fecha de referencia -> no tocar, por seguridad
+          const d=daysSince(lastActivity, refDate);
+          if(d!==null && d>=DELETE_AFTER_DAYS) toDelete.push(c);
+        }
+        if(!toDelete.length) return;
+        for(const c of toDelete){
+          if(Array.isArray(rows)){
+            for(const r of rows){
+              if(r.clientId===c.id && r.payload?.image){ try{ await removeStorageImageByUrl(r.payload.image); }catch(_){} }
+            }
+          }
+          state.clients=state.clients.filter(x=>x.id!==c.id);
+          logAudit('Cliente eliminado automáticamente','client',c.name,c.id,{motivo:'2 años sin entregas ni renovación (Retorno pendiente)'});
+        }
+        await save();
+        if(['clients','dispatch','delivery'].includes(ui.page)) render();
+      }
       function renderNotes(){
         if(!canAccessPage('notes')) return;
         if(pageNeedsPremium('notes')){ $('#notes-page').innerHTML=pageHead('Notas','Recordatorios internos y mensajes que dejan los clientes desde su portal.')+premiumLockHtml('Notas'); return; }
@@ -2936,11 +3229,11 @@ document.addEventListener('DOMContentLoaded', () => {
           const canEditClient=nt.clientId && canEditPage('clients') && state.clients.some(x=>x.id===nt.clientId);
           const proofUrl=extractProofUrl(nt.text);
           const displayText=proofUrl?nt.text.replace(/\s*Comprobante:\s*https?:\/\/\S+/,'').trim():nt.text;
-          const actions=canEdit?`<div class="note-actions">${nt.status!=='cumplida'?`<button class="success" data-action="note-done" data-id="${nt.id}">✓ Cumplida</button><button class="warning" data-action="note-reschedule" data-id="${nt.id}">Reprogramar</button>`:`<button class="warning" data-action="note-reschedule" data-id="${nt.id}">Reabrir</button>`}${canEditClient?`<button class="info" data-action="edit-client-from-note" data-id="${nt.clientId}">Editar cliente</button>`:''}<button class="icon-btn delete" data-action="delete-note" data-id="${nt.id}" title="Eliminar">×</button></div>`:'';
+          const actions=canEdit?`<div class="note-actions">${nt.status!=='cumplida'?`<button class="success" data-action="note-done" data-id="${nt.id}">✓ Cumplida</button><button class="warning" data-action="note-reschedule" data-id="${nt.id}">Reprogramar</button>`:`<button class="warning" data-action="note-reschedule" data-id="${nt.id}">Reabrir</button>`}${canEditClient?`<button class="info" data-action="edit-client-from-note" data-id="${nt.clientId}">Editar cliente</button><button class="primary" data-action="renew-client-from-note" data-id="${nt.clientId}" data-kind="${nt.id}">Renovar</button>`:''}<button class="icon-btn delete" data-action="delete-note" data-id="${nt.id}" title="Eliminar">×</button></div>`:'';
           return `<div class="note-card${overdue?' note-overdue':''}">
             <div class="note-card-top">${statusBadge}${sourceBadge}<span class="muted note-date">${esc(nt.dueDate.split('-').reverse().join('/'))}</span></div>
             <p class="note-text">${esc(displayText)}</p>
-            ${nt.clientName?`<p class="muted note-client">Cliente: ${esc(nt.clientName)}</p>`:''}
+            ${nt.clientName?`<p class="muted note-client">Cliente: <b class="note-client-name">${esc(nt.clientName)}</b></p>`:''}
             ${proofUrl?`<p class="note-client"><a class="success" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:6px 12px" href="${esc(proofUrl)}" target="_blank" rel="noopener">🧾 Ver comprobante</a></p>`:''}
             ${actions}
           </div>`;
@@ -3065,13 +3358,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       function itemIconsForm(){
         return `<p class="muted">Sube una imagen para cada artículo del menú. Aparece junto a la cantidad de ese artículo cuando editas un plan o un cliente, y también en el portal de autoservicio del cliente.</p>
-        <div class="toggle-list" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${menuItems().map(([key,label])=>{const icon=state.settings.itemIcons?.[key];return `<div style="display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px">
-          <div style="width:34px;height:34px;border-radius:8px;overflow:hidden;border:1px solid var(--line);display:grid;place-items:center;background:var(--bg);flex:0 0 auto">${icon?`<img loading="lazy" decoding="async" src="${icon}" alt="" style="width:100%;height:100%;object-fit:cover">`:'🍽️'}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:12px;font-weight:650;margin-bottom:4px">${label}</div>
-            <input type="file" accept="image/*" data-item-icon="${key}" style="font-size:11px">
+        <div class="toggle-list" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr))">${menuItems().map(([key,label])=>{const icon=state.settings.itemIcons?.[key];return `<div style="display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:34px;height:34px;border-radius:8px;overflow:hidden;border:1px solid var(--line);display:grid;place-items:center;background:var(--bg);flex:0 0 auto">${icon?`<img loading="lazy" decoding="async" src="${icon}" alt="" style="width:100%;height:100%;object-fit:cover">`:'🍽️'}</div>
+            <div style="font-size:var(--fs-sm);font-weight:650;flex:1;min-width:0">${label}</div>
+            ${icon?`<button type="button" class="icon-btn" data-action="remove-item-icon" data-id="${key}" title="Quitar">✕</button>`:''}
           </div>
-          ${icon?`<button type="button" class="icon-btn" data-action="remove-item-icon" data-id="${key}" title="Quitar">✕</button>`:''}
+          <input type="file" accept="image/*" data-item-icon="${key}">
         </div>`;}).join('')}</div>`;
       }
       function openItemIcons(){
@@ -3842,9 +4135,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if(saved)logAudit('Menús Premium actualizados','settings','Qué requiere Premium','',{});
         });
       }
-      function showModal(title,html,submit){$('#modal-title').textContent=title;$('#modal-body').innerHTML=html;const dialog=$('#modal'),form=$('#modal-form'),saveButton=$('#modal-save');
-        saveButton.hidden=false;$('#modal-cancel').textContent='Cancelar';
-        form.onsubmit=async e=>{e.preventDefault();saveButton.disabled=true;try{if(await submit(form)!==false)dialog.close();}finally{saveButton.disabled=false;}};dialog.showModal();}
+      let modalCancelFn=null;
+      function showModal(title,html,submit,onCancel){const dialog=$('#modal');if(dialog.open)dialog.close();$('#modal-title').textContent=title;$('#modal-body').innerHTML=html;const form=$('#modal-form'),saveButton=$('#modal-save');
+        saveButton.hidden=false;$('#modal-cancel').textContent='Cancelar';modalCancelFn=onCancel||null;
+        form.onsubmit=async e=>{e.preventDefault();saveButton.disabled=true;try{if(await submit(form)!==false){modalCancelFn=null;dialog.close();}}finally{saveButton.disabled=false;}};dialog.showModal();}
       async function remove(kind,id){const labels={client:'cliente',driver:'driver',route:'ruta',user:'usuario',plan:'plan'};if(!confirm(`¿Eliminar este ${labels[kind]}?`))return;if(kind==='user'){if(id===activeUser.id){notice('No puedes eliminar tu usuario actual.',true);return;}const u=staffUsers.find(x=>x.id===id);if(u?.role==='superadmin'&&!isSuperAdmin()){notice('No puedes eliminar al Super Administrador.',true);return;}staffUsers=staffUsers.filter(x=>x.id!==id);const saved=await save();renderUsers();notice(saved?'Usuario eliminado de la base de datos.':'El usuario solo se eliminó de esta copia local.',!saved);if(saved)logAudit('Usuario eliminado','user',u?`${u.name} (${u.username})`:id,id,{});return;}if(kind==='plan'){if(state.clients.some(c=>c.planId===id)){notice('No se puede eliminar un plan asignado a clientes. Reasígnalos primero.',true);return;}if(state.clients.some(c=>c.pendingPlan?.planId===id)){notice('No se puede eliminar un plan que algún cliente tiene programado como su próximo plan.',true);return;}const p=plan(id);state.plans=state.plans.filter(x=>x.id!==id);const saved=await save();renderPlans();notice(saved?'Plan eliminado de la base de datos.':'El plan solo se eliminó de esta copia local.',!saved);if(saved)logAudit('Plan eliminado','plan',p?.name||id,id,{});return;}const map={client:'clients',driver:'drivers',route:'routes'};if(kind==='route'&&(state.clients.some(c=>c.routeId===id)||state.drivers.some(d=>d.routeId===id))){notice('No se puede eliminar una ruta asignada.',true);return;}const before=state[map[kind]].find(x=>x.id===id);const label=kind==='client'?before?.name:kind==='driver'?`${before?.firstName||''} ${before?.lastName||''}`.trim():before?.name;state[map[kind]]=state[map[kind]].filter(x=>x.id!==id);const saved=await save();renderPage(ui.page);notice(saved?'Registro eliminado de la base de datos.':'El registro solo se eliminó de esta copia local.',!saved);if(saved)logAudit(`${labels[kind][0].toUpperCase()}${labels[kind].slice(1)} eliminado`,kind,label||id,id,{});}
 
       function buildDaySnapshotPayload(date,clientIds){
@@ -4169,7 +4463,7 @@ document.addEventListener('DOMContentLoaded', () => {
         notice('Archivo Excel generado.');
       }
       document.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action,id=e.target.closest('[data-action]')?.dataset.id,kind=e.target.closest('[data-action]')?.dataset.kind;if(!action)return;const map={
-        "mark-delivered":()=>openDeliveryMark(id,'entregado'),"mark-not-delivered":()=>openDeliveryMark(id,'no_entregado'),"edit-delivery":()=>openDeliveryMark(id,kind),"clear-delivery":()=>clearDelivery(id),"view-delivery":()=>openDeliveryDetail(id),"add-client":()=>openClient(),"pause-client":()=>openClientPause(id),"resume-client":()=>resumeClient(id),"edit-client":()=>openClient(id),"edit-client-from-note":()=>openClient(id),"quick-status":()=>openQuickStatus(id),"delete-client":()=>remove('client',id),"add-note":()=>openNote(),"edit-note":()=>openNote(id),"note-done":()=>markNoteDone(id),"note-reschedule":()=>openNoteReschedule(id),"delete-note":()=>deleteNote(id),"add-driver":()=>openDriver(),"edit-driver":()=>openDriver(id),"delete-driver":()=>remove('driver',id),"remove-driver-photo":()=>removeDriverPhoto(id),"add-route":()=>openRoute(),"edit-route":()=>openRoute(id),"delete-route":()=>remove('route',id),"add-plan":()=>openPlan(),"reassign-plan":()=>openPlanReassign(),"edit-plan":()=>openPlan(id),"delete-plan":()=>remove('plan',id),"remove-plan-photo":()=>removePlanPhoto(id),"toggle-plan-available":async()=>{const p=plan(id);if(!p)return;p.availableForPurchase=e.target.checked;const saved=await save();if(!saved){p.availableForPurchase=!p.availableForPurchase;e.target.checked=p.availableForPurchase;notice('No se pudo guardar el cambio.',true);}},"add-menu-item":()=>openMenuItem(),"edit-menu-item":()=>openMenuItem(id),"delete-menu-item":()=>deleteMenuItem(id),"open-item-icons":()=>openItemIcons(),"add-inventory-item":()=>openInventoryItem(),"edit-inventory-item":()=>openInventoryItem(id),"delete-inventory-item":()=>deleteInventoryItem(id),"add-inventory-entry":()=>openInventoryMovement('entry'),"add-inventory-use":()=>openInventoryMovement('use'),"add-inventory-waste":()=>openInventoryMovement('waste'),"edit-inventory-movement":()=>{const m=state.inventory.movements.find(x=>x.id===id);if(m)openInventoryMovement(m.type,id);},"delete-inventory-movement":()=>deleteInventoryMovement(id),"add-inventory-link":()=>openInventoryLink(),"edit-inventory-link":()=>openInventoryLink(id),"delete-inventory-link":()=>deleteInventoryLink(id),"add-user":()=>openUser(),"edit-user":()=>openUser(id),"delete-user":()=>remove('user',id),"add-role":()=>openRole(),"edit-role":()=>openRole(id),"delete-role":()=>deleteRole(id),"refresh-audit":()=>renderAudit(true),"load-all-audit":()=>loadAllAudit(),"refresh-metrics":()=>renderMetrics(true),"process-day":processDay,"unprocess-day":unprocessDay,"dispatch-force-live":()=>{ui.forceLiveDispatch=true;renderDispatch();},"toggle-day-pause":()=>toggleDayPause(id),"export-diets":exportDiets,"export-route-order":exportRouteOrder,"export-metrics":exportMetrics,"remove-logo":async()=>{if(state.settings.logoUrl)removeStorageImageByUrl(state.settings.logoUrl);state.settings.logoUrl='';const saved=await save();applyBranding();renderSettings();notice(saved?'Logo eliminado.':'Se quitó localmente, pero no se guardó en la base de datos.',!saved);},"remove-ad-image":async()=>{if(state.settings.adImageUrl)removeStorageImageByUrl(state.settings.adImageUrl);state.settings.adImageUrl='';const saved=await save();renderSettings();notice(saved?'Imagen publicitaria eliminada.':'Se quitó localmente, pero no se guardó en la base de datos.',!saved);},"remove-payment-qr":async()=>{if(state.settings.paymentQrUrl)removeStorageImageByUrl(state.settings.paymentQrUrl);state.settings.paymentQrUrl='';const saved=await save();renderSettings();notice(saved?'QR de pago eliminado.':'Se quitó localmente, pero no se guardó en la base de datos.',!saved);},"remove-item-icon":async()=>{if(state.settings.itemIcons[id])removeStorageImageByUrl(state.settings.itemIcons[id]);delete state.settings.itemIcons[id];const saved=await save();$('#modal-body').innerHTML=itemIconsForm();openItemIconsHandlers();notice(saved?'Ícono eliminado.':'Se quitó localmente, pero no se guardó en la base de datos.',!saved);},"export-json":async()=>{
+        "mark-delivered":()=>openDeliveryMark(id,'entregado'),"mark-not-delivered":()=>openDeliveryMark(id,'no_entregado'),"edit-delivery":()=>openDeliveryMark(id,kind),"clear-delivery":()=>clearDelivery(id),"view-delivery":()=>openDeliveryDetail(id),"add-client":()=>openClient(),"pause-client":()=>openClientPause(id),"resume-client":()=>resumeClient(id),"renew-client":()=>openRenewClient(id),"renew-client-from-note":()=>openRenewClient(id,kind),"change-client-plan":()=>openRenewClient(id,null,'change'),"renew-client-inline":()=>openRenewClient(id,null,'renew',true),"change-client-plan-inline":()=>openRenewClient(id,null,'change',true),"edit-client":()=>openClient(id),"edit-client-from-note":()=>openClient(id),"quick-status":()=>openQuickStatus(id),"delete-client":()=>remove('client',id),"add-note":()=>openNote(),"edit-note":()=>openNote(id),"note-done":()=>markNoteDone(id),"note-reschedule":()=>openNoteReschedule(id),"delete-note":()=>deleteNote(id),"add-driver":()=>openDriver(),"edit-driver":()=>openDriver(id),"delete-driver":()=>remove('driver',id),"remove-driver-photo":()=>removeDriverPhoto(id),"add-route":()=>openRoute(),"edit-route":()=>openRoute(id),"delete-route":()=>remove('route',id),"add-plan":()=>openPlan(),"reassign-plan":()=>openPlanReassign(),"edit-plan":()=>openPlan(id),"delete-plan":()=>remove('plan',id),"remove-plan-photo":()=>removePlanPhoto(id),"toggle-plan-available":async()=>{const p=plan(id);if(!p)return;p.availableForPurchase=e.target.checked;const saved=await save();if(!saved){p.availableForPurchase=!p.availableForPurchase;e.target.checked=p.availableForPurchase;notice('No se pudo guardar el cambio.',true);}},"add-menu-item":()=>openMenuItem(),"edit-menu-item":()=>openMenuItem(id),"delete-menu-item":()=>deleteMenuItem(id),"open-item-icons":()=>openItemIcons(),"add-inventory-item":()=>openInventoryItem(),"edit-inventory-item":()=>openInventoryItem(id),"delete-inventory-item":()=>deleteInventoryItem(id),"add-inventory-entry":()=>openInventoryMovement('entry'),"add-inventory-use":()=>openInventoryMovement('use'),"add-inventory-waste":()=>openInventoryMovement('waste'),"edit-inventory-movement":()=>{const m=state.inventory.movements.find(x=>x.id===id);if(m)openInventoryMovement(m.type,id);},"delete-inventory-movement":()=>deleteInventoryMovement(id),"add-inventory-link":()=>openInventoryLink(),"edit-inventory-link":()=>openInventoryLink(id),"delete-inventory-link":()=>deleteInventoryLink(id),"add-user":()=>openUser(),"edit-user":()=>openUser(id),"delete-user":()=>remove('user',id),"add-role":()=>openRole(),"edit-role":()=>openRole(id),"delete-role":()=>deleteRole(id),"refresh-audit":()=>renderAudit(true),"load-all-audit":()=>loadAllAudit(),"refresh-metrics":()=>renderMetrics(true),"process-day":processDay,"unprocess-day":unprocessDay,"dispatch-force-live":()=>{ui.forceLiveDispatch=true;renderDispatch();},"toggle-day-pause":()=>toggleDayPause(id),"export-diets":exportDiets,"export-route-order":exportRouteOrder,"export-metrics":exportMetrics,"remove-logo":async()=>{if(state.settings.logoUrl)removeStorageImageByUrl(state.settings.logoUrl);state.settings.logoUrl='';const saved=await save();applyBranding();renderSettings();notice(saved?'Logo eliminado.':'Se quitó localmente, pero no se guardó en la base de datos.',!saved);},"remove-ad-image":async()=>{if(state.settings.adImageUrl)removeStorageImageByUrl(state.settings.adImageUrl);state.settings.adImageUrl='';const saved=await save();renderSettings();notice(saved?'Imagen publicitaria eliminada.':'Se quitó localmente, pero no se guardó en la base de datos.',!saved);},"remove-payment-qr":async()=>{if(state.settings.paymentQrUrl)removeStorageImageByUrl(state.settings.paymentQrUrl);state.settings.paymentQrUrl='';const saved=await save();renderSettings();notice(saved?'QR de pago eliminado.':'Se quitó localmente, pero no se guardó en la base de datos.',!saved);},"remove-item-icon":async()=>{if(state.settings.itemIcons[id])removeStorageImageByUrl(state.settings.itemIcons[id]);delete state.settings.itemIcons[id];const saved=await save();$('#modal-body').innerHTML=itemIconsForm();openItemIconsHandlers();notice(saved?'Ícono eliminado.':'Se quitó localmente, pero no se guardó en la base de datos.',!saved);},"export-json":async()=>{
           const scope=$('#export-scope')?.value||'all';
           if(scope!=='all'){
             const scopes={clientes:{data:{clients:state.clients,plans:state.plans,days:state.days,currentDate:state.currentDate},label:'clientes'},personal:{data:{drivers:state.drivers,routes:state.routes,settings:state.settings,staffUsers},label:'personal'},inventario:{data:{inventory:state.inventory},label:'inventario'}};
@@ -4193,7 +4487,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },"import-json":()=>$('#import-file').click(),"open-route-map":()=>window.DriverMap?.open(e.target.closest('[data-action]')?.dataset.route||'')};
 
         const ACTION_PERMS={
-          "add-client":()=>canEditPage('clients'),"pause-client":()=>canEditPage('clients'),"resume-client":()=>canEditPage('clients'),"edit-client":()=>canEditPage('clients'),"edit-client-from-note":()=>canEditPage('clients'),"delete-client":()=>canEditPage('clients'),"quick-status":()=>canEditPage('clients'),
+          "add-client":()=>canEditPage('clients'),"pause-client":()=>canEditPage('clients'),"resume-client":()=>canEditPage('clients'),"renew-client":()=>canEditPage('clients'),"renew-client-from-note":()=>canEditPage('clients'),"change-client-plan":()=>canEditPage('clients'),"renew-client-inline":()=>canEditPage('clients'),"change-client-plan-inline":()=>canEditPage('clients'),"edit-client":()=>canEditPage('clients'),"edit-client-from-note":()=>canEditPage('clients'),"delete-client":()=>canEditPage('clients'),"quick-status":()=>canEditPage('clients'),
           "add-note":()=>canEditPage('notes'),"edit-note":()=>canEditPage('notes'),"note-done":()=>canEditPage('notes'),"note-reschedule":()=>canEditPage('notes'),"delete-note":()=>canEditPage('notes'),
           "add-driver":()=>canEditPage('drivers'),"edit-driver":()=>canEditPage('drivers'),"delete-driver":()=>canEditPage('drivers'),"remove-driver-photo":()=>canEditPage('drivers'),
           "add-route":()=>canEditPage('routes'),"edit-route":()=>canEditPage('routes'),"delete-route":()=>canEditPage('routes'),
@@ -4217,12 +4511,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const apply=collapsed=>{ document.getElementById('app').classList.toggle('sidebar-collapsed',collapsed); btn.textContent=collapsed?'»':'«'; btn.title=collapsed?'Expandir menú':'Contraer menú'; };
         apply(localStorage.getItem(SIDEBAR_COLLAPSED_KEY)==='1');
         btn.onclick=()=>{ const collapsed=!document.getElementById('app').classList.contains('sidebar-collapsed'); apply(collapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY,collapsed?'1':'0'); };
-      })();$('#modal-close').onclick=()=>$('#modal').close();$('#modal-cancel').onclick=()=>$('#modal').close();$('#logout-btn').onclick=async()=>{
+      })();
+      function closeOrReturnModal(){const cb=modalCancelFn;modalCancelFn=null;if(cb)cb();else $('#modal').close();}
+      $('#modal-close').onclick=closeOrReturnModal;$('#modal-cancel').onclick=closeOrReturnModal;
+      $('#modal').addEventListener('cancel',e=>{if(modalCancelFn){e.preventDefault();closeOrReturnModal();}});
+      $('#logout-btn').onclick=async()=>{
         try{ await operationsSaveQueue; }catch(_){}
         try{ await window.SupabaseDB?.revokeSession(); }catch(_){}
         sessionStorage.removeItem(STAFF_SESSION_KEY);
         location.href='./index.html';
-      };$('#manual-sync-btn').onclick=async()=>{const synced=await loadFromServer();const sd=await serverToday();normalize(sd);deliveryCache={};render();applyBranding();cleanupOldProofImages();cleanupOldDeliveryPhotos();notice(synced?'Datos sincronizados con el servidor.':'No se pudo leer la base de datos.',!synced);};$('#import-file').onchange=e=>{
+      };$('#manual-sync-btn').onclick=async()=>{const synced=await loadFromServer();const sd=await serverToday();normalize(sd);deliveryCache={};render();applyBranding();cleanupOldProofImages();cleanupOldDeliveryPhotos();cleanupInactiveClients();notice(synced?'Datos sincronizados con el servidor.':'No se pudo leer la base de datos.',!synced);};$('#import-file').onchange=e=>{
         const file=e.target.files[0];if(!file)return;
         const r=new FileReader();
         r.onload=async()=>{
@@ -4262,7 +4560,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try { activeUser=JSON.parse(sessionStorage.getItem(STAFF_SESSION_KEY)); } catch (_) { activeUser=null; }
         window.SupabaseDB?.setSessionToken(activeUser?.sessionToken || null, 'staff');
       if(!activeUser){ window.location.replace('./index.html'); return; }
-      load(); applyBranding(); initialServerLoadPromise=loadFromServer().then(async () => { const sd=await serverToday(); normalize(sd); render(); applyBranding(); cleanupOldProofImages(); cleanupOldDeliveryPhotos(); }); render(); activate(isDriverRole()?'delivery':'dispatch');
+      load(); applyBranding(); initialServerLoadPromise=loadFromServer().then(async () => { const sd=await serverToday(); normalize(sd); render(); applyBranding(); cleanupOldProofImages(); cleanupOldDeliveryPhotos(); cleanupInactiveClients(); }); render(); activate(isDriverRole()?'delivery':'dispatch');
       window.SupabaseDB?.joinPresence({id:activeUser.id, role:isDriverRole()?'driver':'staff', name:activeUser.name}, st=>{
         presenceCounts=computePresenceCounts(st);
         const box=document.getElementById('presence-counts');

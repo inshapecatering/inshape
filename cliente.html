@@ -26,7 +26,89 @@
 
   <style>
     
-    :root{--font:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-display:Figtree,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--bs-primary:#3867f4;--bs-primary-rgb:56,103,244;--bs-link-color:#3867f4;--bs-link-color-rgb:56,103,244;--bs-link-hover-color:#2a52d6;--bs-link-hover-color-rgb:42,82,214}
+    :root{--font:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-display:Figtree,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--bs-primary:#3867f4;--bs-primary-rgb:56,103,244;--bs-link-color:#3867f4;--bs-link-color-rgb:56,103,244;--bs-link-hover-color:#2a52d6;--bs-link-hover-color-rgb:42,82,214;--bs-border-radius:8px;--bs-border-radius-sm:6px;--bs-border-radius-lg:12px;--bs-border-radius-xl:1rem;--bs-border-radius-2xl:1rem}
+    /* Misma familia visual que panel.html: botones en pildora, inputs con
+       el mismo radio, y el boton nativo de "Seleccionar archivo" con el
+       mismo tratamiento chico (evita que se salga del recuadro y se ve
+       igual que en el panel). */
+    .btn:not(.btn-close):not(.btn-check){border-radius:999px!important;font-weight:650}
+    .form-control,.form-select{border-radius:8px}
+    input[type="file"].form-control{padding:6px 10px;font-size:.8rem;color:var(--bs-secondary-color,#6c757d)}
+    /* Safari/iOS le da a los campos de fecha un ancho minimo de contenido
+       que ignora el "width:100%" de Bootstrap en cuanto el input vive
+       dentro de una columna flex (como las de "Pausar servicio"): el
+       campo se sale de su recuadro en vez de encogerse. */
+    input[type="date"], input[type="month"], input[type="time"], input[type="datetime-local"]{min-width:0}
+    input[type="file"].form-control::file-selector-button{
+      font-family:var(--font-display);
+      font-weight:650;
+      font-size:.75rem;
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid var(--bs-border-color,#dee2e6);
+      background:var(--bs-tertiary-bg,#f5f7fb);
+      color:var(--bs-body-color,#212529);
+      cursor:pointer;
+      margin-right:8px;
+      transition:background .15s;
+    }
+    input[type="file"].form-control::file-selector-button:hover{background:var(--bs-secondary-bg,#e9ecef)}
+    /* El modal de "Renovar/Cambiar plan" es el unico popup real de todo el
+       portal (el resto son tarjetas simples en la pagina) -- se lo estiliza
+       para que se sienta de la misma familia: mismo tipo de letra en el
+       titulo (Figtree, igual que el resto de encabezados), sin bordes
+       Bootstrap por defecto, y la misma sombra suave que usan las tarjetas
+       ("shadow-sm border-0"). */
+    .modal-title{font-family:var(--font-display);font-weight:700}
+    .modal-content{border:0;box-shadow:0 .75rem 2rem rgba(0,0,0,.16)}
+    .modal-header,.modal-footer{border-color:var(--bs-border-color-translucent,rgba(0,0,0,.08))}
+    .modal-header{padding:1.1rem 1.5rem}
+    .modal-body{padding:1.25rem 1.5rem}
+    /* Etiquetas de formulario mas parecidas a panel.html: en negrita y con
+       el color normal del texto (no gris apagado), en vez del gris chico
+       que usa Bootstrap por defecto. */
+    .form-label{font-weight:700;font-size:.85rem;color:var(--bs-body-color,#212529)!important}
+    /* Lista para elegir plan nuevo: en vez de botones grandes celestes,
+       filas simples con borde (mismo estilo que las opciones de plan en
+       panel.html), para que no se sienta como un boton de accion mas. */
+    .plan-pick-btn{
+      background:var(--bs-body-bg,#fff);
+      border:1.5px solid var(--bs-border-color,#dee2e6)!important;
+      border-radius:12px!important;
+      color:var(--bs-body-color,#212529)!important;
+      font-weight:650;
+      box-shadow:none;
+    }
+    .plan-pick-btn:hover{border-color:var(--bs-primary,#3867f4)!important;background:color-mix(in srgb,var(--bs-primary) 6%,var(--bs-body-bg))}
+    /* Boton de cerrar modal circular y gris, igual al de panel.html (ahi
+       sale asi porque hereda el boton base en pildora con fondo gris; acA
+       Bootstrap trae su propio "x" en forma de imagen sin fondo, asi que
+       se le agrega el circulo a mano). */
+    .btn-close{
+      background-color:var(--bs-tertiary-bg,#f5f7fb);
+      border-radius:50%;
+      opacity:1;
+      width:1.9rem;
+      height:1.9rem;
+      padding:0;
+      background-size:.65rem;
+      box-shadow:none;
+      transform:none!important;
+    }
+    .btn-close:hover{background-color:var(--bs-secondary-bg,#e9ecef);opacity:1}
+    /* En tema nocturno, Bootstrap invierte los colores del boton de cerrar
+       (filter:invert(...)) para que la "x" se vea blanca sobre fondos
+       oscuros -- pero ese filtro tambien invierte el fondo circular que le
+       pusimos arriba, y un gris oscuro invertido queda casi blanco: el
+       boton entero se ve en blanco y la "x" (tambien blanca) desaparece.
+       Se anula ese filtro y se define a mano un circulo oscuro con la "x"
+       en un color claro, igual que el resto de inputs del tema nocturno. */
+    [data-theme="night"] .btn-close{
+      filter:none;
+      background-color:#2b3648;
+      background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23e7ecf5'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
+    }
+    [data-theme="night"] .btn-close:hover{background-color:#374259}
     body{background:var(--page-bg,#f5f7fb);font-family:var(--font)}
     h1,h2,h3,.btn{font-family:var(--font-display)}
     .portal{max-width:1080px}.portal .card{border-radius:1rem}.brand-image{width:42px;height:42px;object-fit:contain}.hero{background:linear-gradient(115deg,#3867f4,#15a77f);color:#fff}.metric{background:var(--bs-tertiary-bg);border-radius:1rem}.client-avatar{width:52px;height:52px;background:rgba(255,255,255,.2)}.instagram{background:linear-gradient(125deg,#833ab4,#fd1d1d,#fcb045);color:#fff;text-decoration:none}.btn-whatsapp{background:#25D366!important;border-color:transparent!important;color:#fff!important;font-weight:650}.btn-whatsapp:hover{background:#20bd5a!important;color:#fff!important}a.link-whatsapp{color:#1da851;font-weight:650;text-decoration:none}a.link-whatsapp:hover{color:#178a42;text-decoration:underline}.hidden{display:none!important}
@@ -79,7 +161,11 @@
     .portal .btn-success{background:linear-gradient(135deg,color-mix(in srgb,#15a77f 78%,white 22%),#15a77f);border-color:transparent;box-shadow:0 4px 14px rgba(21,167,127,.32)}
     .portal .btn-success:hover{box-shadow:0 8px 22px rgba(25,135,84,.38)}
     .premium-lock{max-width:460px;margin:40px auto;padding:28px 24px;text-align:center;border-radius:1rem;color:#fff;background:linear-gradient(120deg,#e4002b,#ff4b3e);box-shadow:0 10px 30px rgba(228,0,43,.25)}
-    .premium-lock .premium-lock-icon{font-size:32px;margin-bottom:8px}
+    .premium-lock .premium-lock-icon{display:flex;justify-content:center;margin-bottom:8px}
+    .form-control:focus-visible,.form-select:focus-visible,.btn:focus-visible,.btn-check:focus-visible+.pause-mode-card,th[role="button"]:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--bs-primary,#3867f4);outline-offset:2px}
+    .modal.show .modal-dialog{animation:modal-pop .18s ease}
+    @keyframes modal-pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .modal-backdrop.show{transition:opacity .15s ease}
     .premium-lock h2{font-size:18px;margin:0 0 8px}
     .premium-lock p{margin:0 0 16px;opacity:.95;font-size:14px}
     .btn-premium{display:inline-block;background:#fff;color:#e4002b;font-weight:700;padding:10px 18px;border-radius:999px;text-decoration:none}
@@ -96,13 +182,27 @@ function boot() {
     const OPERATIONS_KEY = `${APP_CONFIG.storagePrefix}-operaciones-v3`;
     const CLIENT_ROW_KEY = `${APP_CONFIG.storagePrefix}-client-row-v1`;
     const CLIENT_SESSION_KEY = `${APP_CONFIG.storagePrefix}-client-session-v1`;
-    const THEME_KEY = `${APP_CONFIG.storagePrefix}-client-theme-v1`;
-    const CLIENT_THEME_STORE_KEY = `${APP_CONFIG.storagePrefix}-client-theme-store-v1`;
+    // Misma llave que usan login.html y panel.html: el tema es unico por
+    // dispositivo/navegador, no por cliente -- si se cambia en cualquiera
+    // de los 3, debe verse igual en los otros.
+    const THEME_KEY = `${APP_CONFIG.storagePrefix}-ui-theme-v1`;
     const BRANDING_KEY = `${APP_CONFIG.storagePrefix}-client-branding-v1`;
     const DEFAULT_ITEMS = [['shots', 'Shots'], ['proteins', 'Proteínas'], ['juices', 'Jugos'], ['breakfast', 'Desayuno'], ['snack1', 'Merienda 1'], ['lunch', 'Almuerzo'], ['snack2', 'Merienda 2'], ['dinner', 'Cena']];
     const n = v => Number(v) || 0;
     const fmt = d => d ? d.split('-').reverse().join('/') : '';
    
+    const ICON_CALENDAR = React.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true", style: { marginRight: 5, verticalAlign: "-2px" } },
+        React.createElement("rect", { x: "3", y: "4.5", width: "18", height: "16", rx: "2" }),
+        React.createElement("path", { d: "M3 9.5h18M8 2.5v4M16 2.5v4" }));
+    const ICON_PIN = React.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true", style: { marginRight: 5, verticalAlign: "-2px" } },
+        React.createElement("path", { d: "M12 21s7-6.6 7-11.5A7 7 0 0 0 5 9.5C5 14.4 12 21 12 21z" }),
+        React.createElement("circle", { cx: "12", cy: "9.5", r: "2.4" }));
+    const ICON_HOME = React.createElement("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true", style: { marginRight: 5, verticalAlign: "-2px" } },
+        React.createElement("path", { d: "M3 11.5 12 4l9 7.5" }),
+        React.createElement("path", { d: "M5.5 10v9.5h13V10" }));
+    const ICON_CHECK_CIRCLE = React.createElement("svg", { width: "17", height: "17", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" },
+        React.createElement("circle", { cx: "12", cy: "12", r: "10" }),
+        React.createElement("path", { d: "M8 12.5l2.5 2.5L16 9.5" }));
     function workDate(data) { return data.currentDate || new Date().toISOString().slice(0, 10); }
     function dayInfo(data, date) { return data.days?.[date] || { laborable: true }; }
     function addDays(date, count) { const d = new Date(date + 'T12:00:00'); d.setDate(d.getDate() + count); return d.toISOString().slice(0, 10); }
@@ -157,30 +257,15 @@ function boot() {
             return {};
         }
     }
-    function readClientThemeStore() {
-        try {
-            return JSON.parse(localStorage.getItem(CLIENT_THEME_STORE_KEY)) || {};
-        }
-        catch (_) {
-            return {};
-        }
-    }
+    // El tema es unico por dispositivo (ver THEME_KEY arriba): se ignora
+    // el clientId a proposito para que sea el mismo tema que ven
+    // login.html y panel.html en ese navegador.
     function getClientTheme(clientId) {
-        const store = readClientThemeStore(), key = clientId || 'default';
-        if (!store[key]) {
-            store[key] = localStorage.getItem(THEME_KEY) || 'light';
-            try {
-                localStorage.setItem(CLIENT_THEME_STORE_KEY, JSON.stringify(store));
-            }
-            catch (_) { }
-        }
-        return store[key];
+        return localStorage.getItem(THEME_KEY) || 'light';
     }
     function saveClientTheme(clientId, theme) {
-        const store = readClientThemeStore(), key = clientId || 'default';
-        store[key] = theme;
         try {
-            localStorage.setItem(CLIENT_THEME_STORE_KEY, JSON.stringify(store));
+            localStorage.setItem(THEME_KEY, theme);
         }
         catch (_) { }
     }
@@ -281,7 +366,9 @@ function boot() {
             React.createElement(LogoutButton, null),
             React.createElement(Header, { branding: branding, showThemeSelect: false }),
             React.createElement("div", { className: "premium-lock" },
-                React.createElement("div", { className: "premium-lock-icon" }, "\uD83D\uDD12"),
+                React.createElement("div", { className: "premium-lock-icon" }, React.createElement("svg", { width: "40", height: "40", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" },
+                    React.createElement("rect", { x: "4", y: "11", width: "16", height: "10", rx: "2" }),
+                    React.createElement("path", { d: "M8 11V7a4 4 0 0 1 8 0v4" }))),
                 React.createElement("h2", null, "Portal de clientes es una funci\u00F3n Premium"),
                 React.createElement("p", null, "Esta cuenta est\u00E1 en el plan B\u00E1sico. Contacta a tu proveedor para activar el plan Premium y desbloquear esta funci\u00F3n."),
                 wa && React.createElement("a", { className: "btn-premium", href: wa, target: "_blank", rel: "noopener" }, "Contactar por WhatsApp"))));
@@ -328,7 +415,7 @@ function boot() {
                     React.createElement("div", { className: "row g-2 justify-content-center" },
                         React.createElement("div", { className: "col-4" },
                             React.createElement("div", { className: "metric p-3" },
-                                React.createElement("small", { className: "text-secondary d-block" }, "D\u00EDas pagados"),
+                                React.createElement("small", { className: "text-secondary d-block" }, "Días pagados"),
                                 React.createElement("strong", { className: "fs-4" }, n(client.paidDays)))),
                         React.createElement("div", { className: "col-4" },
                             React.createElement("div", { className: "metric p-3" },
@@ -370,7 +457,11 @@ function boot() {
     function ScheduledResumeCard({ client, next, message, onAdvance }) {
         return (React.createElement("article", { className: "card shadow-sm border-0" },
             React.createElement("div", { className: "card-body p-4" },
-                React.createElement("h2", { className: "h5 mb-1" }, "\u2705 Reactivaci\u00F3n programada"),
+                React.createElement("h2", { className: "h5 mb-1" }, React.createElement(React.Fragment, null,
+                React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true", style: { marginRight: 6, verticalAlign: "-3px" } },
+                    React.createElement("circle", { cx: "12", cy: "12", r: "10" }),
+                    React.createElement("path", { d: "M8 12.5l2.5 2.5L16 9.5" })),
+                "Reactivaci\u00F3n programada")),
                 React.createElement("p", { className: "text-secondary" },
                     "Tu servicio se reactivar\u00E1 autom\u00E1ticamente el ",
                     React.createElement("b", null, fmt(client.returnDate)),
@@ -404,7 +495,7 @@ function boot() {
                     React.createElement("div", { className: "col-sm-6" },
                         React.createElement("input", { className: "btn-check", type: "radio", name: "resume-mode", id: "resume-mode-date", checked: byDate, onChange: () => setByDate(true) }),
                         React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "resume-mode-date" },
-                            React.createElement("span", { className: "d-block fw-semibold" }, "\uD83D\uDCC5 Elegir fecha"),
+                            React.createElement("span", { className: "d-block fw-semibold" }, React.createElement(React.Fragment, null, ICON_CALENDAR, "Elegir fecha")),
                             React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Por ejemplo, si vuelves reci\u00E9n en un par de d\u00EDas.")))),
                 byDate && (React.createElement("div", { className: "mb-3" },
                     React.createElement("label", { className: "form-label", htmlFor: "resume-date" }, "\u00BFQu\u00E9 d\u00EDa quieres reactivarla?"),
@@ -442,7 +533,7 @@ function boot() {
                     React.createElement("div", { className: "col-sm-4" },
                         React.createElement("input", { className: "btn-check", type: "radio", name: "pause-mode", id: "pause-mode-scheduled", checked: mode === 'scheduled', onChange: () => setMode('scheduled') }),
                         React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "pause-mode-scheduled" },
-                            React.createElement("span", { className: "d-block fw-semibold" }, "\uD83D\uDCC5 Con fecha de retorno"),
+                            React.createElement("span", { className: "d-block fw-semibold" }, React.createElement(React.Fragment, null, ICON_CALENDAR, "Con fecha de retorno")),
                             React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Se reactiva sola el d\u00EDa que elijas, sin que tengas que avisar.")))),
                 mode === 'scheduled' && (React.createElement("div", { className: "mb-3" },
                     React.createElement("label", { className: "form-label", htmlFor: "return-date" }, "\u00BFQu\u00E9 d\u00EDa quieres reactivarla?"),
@@ -488,7 +579,7 @@ function boot() {
         return (React.createElement("div", { className: "col-12" },
             React.createElement("article", { className: "card shadow-sm border-0" },
                 React.createElement("div", { className: "card-body p-4" },
-                    React.createElement("h2", { className: "h5 mb-1" }, "\uD83D\uDCCD Tu direcci\u00F3n de entrega"),
+                    React.createElement("h2", { className: "h5 mb-1" }, React.createElement(React.Fragment, null, ICON_PIN, "Tu direcci\u00F3n de entrega")),
                     !hasChoice && (React.createElement("p", { className: "text-secondary mb-3" },
                         "Actualmente entregamos en: ",
                         React.createElement("b", null, addresses[0]?.address || 'sin dirección registrada'),
@@ -502,13 +593,14 @@ function boot() {
                             React.createElement("div", { className: "col-sm-6" },
                                 React.createElement("input", { className: "btn-check", type: "radio", name: "address-mode", id: "address-mode-permanent", checked: mode === 'permanent', onChange: () => setMode('permanent') }),
                                 React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "address-mode-permanent" },
-                                    React.createElement("span", { className: "d-block fw-semibold" }, "\uD83C\uDFE0 Desde ahora en adelante"),
+                                    React.createElement("span", { className: "d-block fw-semibold" }, React.createElement(React.Fragment, null, ICON_HOME, "Desde ahora en adelante")),
                                     React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Cambia tu direcci\u00F3n habitual hasta que la vuelvas a cambiar."))),
                             React.createElement("div", { className: "col-sm-6" },
                                 React.createElement("input", { className: "btn-check", type: "radio", name: "address-mode", id: "address-mode-tomorrow", checked: mode === 'tomorrow', onChange: () => setMode('tomorrow') }),
                                 React.createElement("label", { className: "pause-mode-card border d-block h-100 p-3", htmlFor: "address-mode-tomorrow" },
                                     React.createElement("span", { className: "d-block fw-semibold" },
-                                        "\uD83D\uDCC5 Solo el ",
+                                        ICON_CALENDAR,
+                                        "Solo el ",
                                         fmt(next)),
                                     React.createElement("span", { className: "d-block small text-secondary mt-1" }, "Cambio puntual; despu\u00E9s vuelve a tu direcci\u00F3n de siempre.")))),
                         React.createElement("div", { className: "row g-2 align-items-end" },
@@ -559,8 +651,8 @@ function boot() {
     }
     function PlanChangeButton({ onOpen }) {
         return (React.createElement("div", { className: "col-12" },
-            React.createElement("button", { className: "btn btn-primary btn-lg w-100 rounded-4 shadow-sm py-3", onClick: onOpen },
-                "\u00BFQuieres renovar o cambiar de plan?")));
+            React.createElement("button", { className: "btn btn-primary w-100 rounded-4 shadow-sm py-2", onClick: onOpen },
+                "Renovar o cambiar de plan")));
     }
     function PlanChangeModal({ show, onClose, data, client, branding, plan }) {
         const [step, setStep] = useState('choose'); // choose | pay | sent
@@ -569,8 +661,28 @@ function boot() {
         const [file, setFile] = useState(null);
         const [sending, setSending] = useState(false);
         const [error, setError] = useState('');
+        const dialogRef = useRef(null);
+        const previouslyFocused = useRef(null);
         useEffect(() => {
             if (show) { setStep('choose'); setRequestType(null); setSelectedPlanId(''); setFile(null); setError(''); }
+        }, [show]);
+        useEffect(() => {
+            if (!show)
+                return;
+            previouslyFocused.current = document.activeElement;
+            dialogRef.current?.focus();
+            const prevOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            function onKeyDown(e) {
+                if (e.key === 'Escape')
+                    onClose();
+            }
+            document.addEventListener('keydown', onKeyDown);
+            return () => {
+                document.removeEventListener('keydown', onKeyDown);
+                document.body.style.overflow = prevOverflow;
+                previouslyFocused.current?.focus?.();
+            };
         }, [show]);
         if (!show)
             return null;
@@ -616,18 +728,18 @@ function boot() {
         const wa = whatsappNumber(branding) ? waLink(branding, `Hola, soy ${client.name}. Tuve un problema al subir mi comprobante de pago.`) : '';
         return (React.createElement(React.Fragment, null,
             React.createElement("div", { className: "modal-backdrop fade show" }),
-            React.createElement("div", { className: "modal fade show", style: { display: 'block' }, tabIndex: -1, role: "dialog" },
+            React.createElement("div", { className: "modal fade show", style: { display: 'block' }, tabIndex: -1, role: "dialog", "aria-modal": "true", "aria-labelledby": "plan-modal-title", ref: dialogRef, onClick: e => { if (e.target === e.currentTarget) onClose(); } },
                 React.createElement("div", { className: "modal-dialog modal-dialog-centered", role: "document" },
                     React.createElement("div", { className: "modal-content rounded-4" },
                         React.createElement("div", { className: "modal-header" },
-                            React.createElement("h5", { className: "modal-title" }, step === 'sent' ? '¡Listo!' : '¿Quieres renovar o cambiar de plan?'),
-                            React.createElement("button", { type: "button", className: "btn-close", onClick: onClose })),
+                            React.createElement("h5", { className: "modal-title", id: "plan-modal-title" }, step === 'sent' ? '¡Listo!' : '¿Quieres renovar o cambiar de plan?'),
+                            React.createElement("button", { type: "button", className: "btn-close", "aria-label": "Cerrar", onClick: onClose })),
                         React.createElement("div", { className: "modal-body" },
                             step === 'choose' && React.createElement("div", { className: "d-grid gap-2" },
-                                React.createElement("button", { className: "btn btn-primary btn-lg", onClick: chooseRenew }, "Quiero renovar mi plan"),
-                                React.createElement("button", { className: "btn btn-outline-primary btn-lg", onClick: () => setStep('newplan') }, "Quiero un nuevo plan")),
+                                React.createElement("button", { className: "btn btn-primary", onClick: chooseRenew }, "Quiero renovar mi plan"),
+                                React.createElement("button", { className: "btn btn-outline-primary", onClick: () => setStep('newplan') }, "Quiero un nuevo plan")),
                             step === 'newplan' && React.createElement("div", { className: "d-grid gap-2" },
-                                availablePlans.length ? availablePlans.map(p => (React.createElement("button", { key: p.id, className: "btn btn-outline-primary btn-lg text-start", onClick: () => choosePlan(p) },
+                                availablePlans.length ? availablePlans.map(p => (React.createElement("button", { key: p.id, className: "btn plan-pick-btn text-start", onClick: () => choosePlan(p) },
                                     React.createElement("b", null, p.name),
                                     p.cost ? React.createElement("span", { className: "float-end" }, `Bs ${p.cost}`) : null)))
                                     : React.createElement("p", { className: "text-secondary mb-0" }, "Por ahora no hay planes disponibles para elegir. Contáctanos directamente."),
@@ -647,7 +759,7 @@ function boot() {
                                     React.createElement("button", { className: "btn btn-danger", onClick: () => setStep(requestType === 'renew' ? 'choose' : 'newplan') }, "\u2190 Volver"),
                                     React.createElement("button", { className: "btn btn-primary ms-auto", onClick: handleSubmit, disabled: sending }, sending ? 'Enviando…' : 'Enviar comprobante'))),
                             step === 'sent' && React.createElement("div", { className: "text-center py-2" },
-                                React.createElement("span", { className: "fs-1 d-block mb-2" }, "\u2705"),
+                                React.createElement("span", { className: "fs-1 d-block mb-2 text-success" }, ICON_CHECK_CIRCLE),
                                 React.createElement("p", { className: "mb-1" }, "El equipo está procesando tu solicitud."),
                                 React.createElement("p", { className: "text-secondary small" }, "Te vamos a contactar en cuanto la revisemos."),
                                 wa && React.createElement("p", { className: "small" }, "¿Urgente? ", React.createElement("a", { className: "link-whatsapp", href: wa, target: "_blank", rel: "noopener" }, "Escríbenos por WhatsApp")),
@@ -878,7 +990,10 @@ function boot() {
             return saved;
         }
         if (phase === 'checking') {
-            return React.createElement("p", { className: "text-secondary text-center py-5" }, "Cargando tu portal\u2026");
+            return React.createElement("div", { className: "text-secondary text-center py-5" },
+                React.createElement("div", { className: "spinner-border mb-2", role: "status", style: { width: '1.8rem', height: '1.8rem' } },
+                    React.createElement("span", { className: "visually-hidden" }, "Cargando\u2026")),
+                React.createElement("p", { className: "mb-0" }, "Cargando tu portal\u2026"));
         }
         if (phase === 'locked') {
             return React.createElement(PremiumLock, { branding: branding });

@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Inicia sesión en Catering Control: acceso para clientes y equipo de la empresa de catering.">
   <title>Catering Control · Iniciar sesión</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -77,7 +78,16 @@
     .brand-mark { width:72px; height:72px; flex:0 0 auto; border-radius:1rem; overflow:hidden; background:var(--brand); transition:background .2s; }
     .brand-mark img { width:100%; height:100%; object-fit:contain; }
     .form-panel { display:none; }
-    .form-panel.active { display:block; }
+    .form-panel.active { display:block; animation: panel-fade .18s ease; }
+    @keyframes panel-fade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+    .form-control:focus-visible, .form-select:focus-visible, .btn:focus-visible, .nav-link:focus-visible {
+      outline: 2px solid var(--brand); outline-offset: 2px;
+    }
+    @media (max-width: 380px) {
+      .brand-row { flex-wrap: wrap; }
+      .brand-info { flex-basis: 100%; }
+      .brand-info .d-inline-flex { margin-top: 6px; }
+    }
     [data-theme="night"] { --brand:#7296ff; }
     [data-theme="night"] body { background:radial-gradient(circle at 20% 20%,rgba(114,150,255,.25),transparent 34%),#121824; }
     [data-theme="night"] .card { background:#1a2130; color:#e7ecf5; }
@@ -191,6 +201,13 @@ function boot() {
         React.createElement("line", { x1: "8.6", y1: "13.4", x2: "15.4", y2: "17.6" }));
     const ICON_CHECK = React.createElement("svg", { width: "17", height: "17", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round" },
         React.createElement("path", { d: "M20 6 9 17l-5-5" }));
+    const ICON_EYE = React.createElement("svg", { width: "17", height: "17", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" },
+        React.createElement("path", { d: "M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" }),
+        React.createElement("circle", { cx: "12", cy: "12", r: "3" }));
+    const ICON_EYE_OFF = React.createElement("svg", { width: "17", height: "17", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true" },
+        React.createElement("path", { d: "M3 3l18 18" }),
+        React.createElement("path", { d: "M10.6 5.1A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.5 13.5 0 0 1-3.1 4.1M6.6 6.6C3.6 8.5 1.5 12 1.5 12s3.5 7 10.5 7c1.4 0 2.6-.28 3.7-.75" }),
+        React.createElement("path", { d: "M9.9 9.9a3 3 0 0 0 4.2 4.2" }));
     function ShareAppButton({ brandName }) {
         const [copied, setCopied] = useState(false);
         if (!isStandalonePwa())
@@ -251,7 +268,7 @@ function boot() {
                 React.createElement("input", { className: "form-control", id: "client-carnet", autoComplete: "username", placeholder: "Ej. 12345678", required: true, value: carnet, onChange: e => setCarnet(e.target.value) })),
             React.createElement("div", { className: "mb-3" },
                 React.createElement("label", { className: "form-label", htmlFor: "client-phone" }, "Tel\u00E9fono"),
-                React.createElement("input", { className: "form-control", id: "client-phone", inputMode: "tel", autoComplete: "current-password", placeholder: "70000000", required: true, value: phone, onChange: e => setPhone(e.target.value) })),
+                React.createElement("input", { className: "form-control", id: "client-phone", type: "tel", inputMode: "tel", autoComplete: "tel", pattern: "[0-9]*", placeholder: "70000000", required: true, value: phone, onChange: e => setPhone(e.target.value.replace(/\D/g, '')) })),
             React.createElement("button", { className: "btn btn-primary w-100", type: "submit", disabled: loading }, loading ? 'Entrando…' : 'Entrar a mi plan')));
     }
     // ---------- Formulario "Soy del equipo" ----------
@@ -301,7 +318,7 @@ function boot() {
                 React.createElement("label", { className: "form-label", htmlFor: "staff-pass" }, "Contrase\u00F1a"),
                 React.createElement("div", { className: "input-group" },
                     React.createElement("input", { className: "form-control", id: "staff-pass", type: showPassword ? 'text' : 'password', autoComplete: "current-password", required: true, value: password, onChange: e => setPassword(e.target.value) }),
-                    React.createElement("button", { className: "btn btn-outline-secondary", type: "button", "aria-label": showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña', onClick: () => setShowPassword(v => !v) }, showPassword ? '😆' : '😃'))),
+                    React.createElement("button", { className: "btn btn-outline-secondary", type: "button", "aria-label": showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña', onClick: () => setShowPassword(v => !v) }, showPassword ? ICON_EYE_OFF : ICON_EYE))),
             React.createElement("button", { className: "btn btn-primary w-100", type: "submit", disabled: loading }, loading ? 'Entrando…' : 'Entrar al panel')));
     }
     // ---------- App principal ----------
@@ -382,15 +399,15 @@ function boot() {
                         React.createElement(ThemeSelect, { theme: theme, onChange: setTheme })),
                     React.createElement(ShareAppButton, { brandName: brandName })),
                 React.createElement("nav", { className: "nav nav-pills nav-fill bg-body-tertiary rounded-pill p-1 mb-4", "aria-label": "Tipo de acceso" },
-                    React.createElement("button", { type: "button", className: `nav-link${accessType === 'client' ? ' active' : ''}`, onClick: () => { setAccessType('client'); setErrorMsg(''); } }, "Soy cliente"),
-                    React.createElement("button", { type: "button", className: `nav-link${accessType === 'staff' ? ' active' : ''}`, onClick: () => { setAccessType('staff'); setErrorMsg(''); } }, "Soy del equipo")),
+                    React.createElement("button", { type: "button", className: `nav-link${accessType === 'client' ? ' active' : ''}`, "aria-current": accessType === 'client' ? 'page' : undefined, onClick: () => { setAccessType('client'); setErrorMsg(''); } }, "Soy cliente"),
+                    React.createElement("button", { type: "button", className: `nav-link${accessType === 'staff' ? ' active' : ''}`, "aria-current": accessType === 'staff' ? 'page' : undefined, onClick: () => { setAccessType('staff'); setErrorMsg(''); } }, "Soy del equipo")),
                 React.createElement(ClientForm, { active: accessType === 'client', onError: setErrorMsg, onClearError: () => setErrorMsg('') }),
                 React.createElement(StaffForm, { active: accessType === 'staff', onError: setErrorMsg, onClearError: () => setErrorMsg('') }),
                 errorMsg && React.createElement("div", { className: "alert alert-danger mt-3 mb-0", role: "alert" }, errorMsg),
-                cleanWhatsapp && (React.createElement("a", { className: "btn w-100 mt-3 d-flex align-items-center justify-content-center gap-2", id: "whatsapp-support-btn", href: `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent('Hola, necesito ayuda para ingresar a Catering Control.')}`, target: "_blank", rel: "noopener", style: { background: '#25D366', color: '#fff', fontWeight: 650 } },
+                cleanWhatsapp && (React.createElement("a", { className: "btn w-100 mt-3 d-flex align-items-center justify-content-center gap-2", id: "whatsapp-support-btn", href: `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(`Hola, necesito ayuda para ingresar a ${brandName}.`)}`, target: "_blank", rel: "noopener", style: { background: '#25D366', color: '#fff', fontWeight: 650 } },
                     React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 32", width: "20", height: "20", fill: "currentColor", "aria-hidden": "true" },
                         React.createElement("path", { d: "M16.004 3C9.377 3 4 8.373 4 15c0 2.386.702 4.607 1.912 6.47L4 29l7.72-1.877A11.94 11.94 0 0 0 16.004 27C22.63 27 28 21.627 28 15S22.63 3 16.004 3zm0 21.75c-1.98 0-3.83-.55-5.41-1.5l-.388-.23-4.58 1.114 1.14-4.46-.253-.4A9.71 9.71 0 0 1 5.25 15c0-5.93 4.82-10.75 10.754-10.75S26.75 9.07 26.75 15 21.938 24.75 16.004 24.75zm5.98-8.06c-.328-.164-1.94-.957-2.24-1.066-.3-.11-.518-.164-.737.164-.218.328-.845 1.066-1.037 1.285-.19.218-.382.246-.71.082-.328-.164-1.385-.51-2.637-1.628-.975-.87-1.633-1.944-1.824-2.272-.19-.328-.02-.505.144-.668.148-.147.328-.383.492-.574.164-.19.218-.328.328-.546.11-.218.055-.41-.027-.574-.082-.164-.737-1.776-1.01-2.432-.266-.64-.537-.553-.737-.563l-.628-.012c-.218 0-.573.082-.873.41-.3.328-1.146 1.12-1.146 2.73 0 1.61 1.174 3.166 1.337 3.384.164.218 2.31 3.53 5.6 4.95.783.338 1.393.54 1.87.69.786.25 1.5.215 2.065.13.63-.094 1.94-.793 2.213-1.56.273-.766.273-1.423.19-1.56-.08-.14-.298-.22-.626-.383z" })),
-                    React.createElement("span", null, "\u00BFNecesitas ayuda? Contactanos"))))));
+                    React.createElement("span", null, "\u00BFNecesitas ayuda? Cont\u00E1ctanos"))))));
     }
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
 }
