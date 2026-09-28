@@ -18,7 +18,11 @@ export default function PayrollPage({ user }) {
   const { t } = useTranslation();
   const { clients, drivers, routes, days, currentDate, saveDays, loading } = useOperations();
   const { currencySymbol } = useCompanyPrefs();
-  const [month, setMonth] = useState(currentDate.slice(0, 7));
+  // La tarifa se escribe en el día que se está mirando (currentDate), que puede ser un viewOverride…
+  // de otro mes: si la grilla mostrara otro mes, el usuario edita y el total no cambia (una edición…
+  // silenciosa). Por eso el mes es currentDate salvo que el selector lo haya cambiado para ESTE día.
+  const [pickedMonth, setPickedMonth] = useState({ day: currentDate, value: currentDate.slice(0, 7) });
+  const month = pickedMonth.day === currentDate ? pickedMonth.value : currentDate.slice(0, 7);
   const isDriver = user?.role === 'driver';
 
   function routeName(id) { return routes.find((r) => r.id === id)?.name || t('panel.payroll.noRoute'); }
@@ -66,7 +70,7 @@ export default function PayrollPage({ user }) {
         <div><h1>{t('panel.nav.payroll')}</h1><p>{t('panel.payroll.subtitle')}</p></div>
       </div>
       <div className="toolbar">
-        <label className="field">{t('panel.common.month')}<div className="date-input-wrap"><input type="month" value={month} onChange={(e) => setMonth(e.target.value)} /></div></label>
+        <label className="field">{t('panel.common.month')}<div className="date-input-wrap"><input type="month" value={month} onChange={(e) => setPickedMonth({ day: currentDate, value: e.target.value })} /></div></label>
         <span className="muted">{t('panel.payroll.rateSavedForDay', { date: fmtDate(currentDate) })}</span>
       </div>
       <p className="muted" style={{ fontSize: 12, marginTop: -8, marginBottom: 12 }}>{t('panel.payroll.daysNote')}</p>
@@ -80,7 +84,7 @@ export default function PayrollPage({ user }) {
             <tr>
               <th>{t('panel.payroll.driverRoute')}</th>
               {dates.map((d) => <th key={d}>{Number(d.slice(-2))}</th>)}
-              <th>{t('panel.common.total')}</th><th>{t('panel.payroll.ratePerDay')}</th><th>{t('panel.common.amount')} ({currencySymbol})</th>
+              <th>{t('panel.common.total')}</th><th>{t('panel.payroll.ratePerDayForDay', { date: fmtDate(currentDate) })}</th><th>{t('panel.common.amount')} ({currencySymbol})</th>
             </tr>
           </thead>
           <tbody>
@@ -93,7 +97,7 @@ export default function PayrollPage({ user }) {
                   <td><b>{d.firstName} {d.lastName}</b><br /><small className="muted">{routeName(d.routeId)}</small></td>
                   {values.map((v, idx) => <td key={idx}>{v || '—'}</td>)}
                   <td>{total}</td>
-                  <td>{!isDriver ? <input className="day-edit" type="number" min="0" step="0.01" id={`rate-${d.id}`} name={`rate-${d.id}`} defaultValue={rate.toFixed(2)} onBlur={(e) => saveRate(d, e.target.value)} /> : rate.toFixed(2)}</td>
+                  <td>{!isDriver ? <input className="day-edit" type="number" min="0" step="0.01" key={`rate-${d.id}-${currentDate}-${rate}`} id={`rate-${d.id}`} name={`rate-${d.id}`} defaultValue={rate.toFixed(2)} onBlur={(e) => saveRate(d, e.target.value)} /> : rate.toFixed(2)}</td>
                   <td>{amountFor(d, values).toFixed(2)}</td>
                 </tr>
               );

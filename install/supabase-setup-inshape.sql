@@ -1,5 +1,5 @@
 -- Catering Control · instalación completa para una empresa nueva (un solo archivo).
--- version de esquema: 1.24   <-- única marca que edita el humano; debe coincidir con el literal del INSERT de db_app_version (sección 23).
+-- version de esquema: 1.26   <-- única marca que edita el humano; debe coincidir con el literal del INSERT de db_app_version (sección 23).
 -- Pegarlo entero en el SQL Editor de Supabase; se puede volver a correr sin romper nada.
 -- Sirve igual para instalar de cero que para actualizar una base vieja: todo es
 -- create table if not exists / create or replace function / on conflict do nothing. Medido:
@@ -428,7 +428,7 @@ security definer
 stable
 set search_path = public, extensions
 as $$
-  select least(12, greatest(0, coalesce(
+  select least(23, greatest(0, coalesce(
     (select case when payload ->> 'dayCutoffHour' ~ '^[0-9]{1,2}$' then (payload ->> 'dayCutoffHour')::int end
        from db_personal where id = 'settings'),
     4)));
@@ -445,6 +445,20 @@ as $$
   select to_char((now() at time zone get_company_timezone()) - make_interval(hours => get_day_cutoff_hour()), 'YYYY-MM-DD');
 $$;
 grant execute on function get_business_date() to anon, authenticated;
+
+-- Cierre del autoservicio: la empresa corta la ventana a las 22:00 de su hora local (era un 22
+-- fijo medido con la hora del teléfono del cliente, que se mueve a gusto; ahora manda el reloj
+-- del servidor). Sin parámetros: la regla es global, no por día, igual que en el portal.
+create or replace function public._autoservicio_cerrado()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $$
+  select extract(hour from now() at time zone get_company_timezone())::int >= 22;
+$$;
+revoke all on function public._autoservicio_cerrado() from public;
 
 -- 7. Lecturas públicas: branding, plan y catálogo del portal
 create or replace function get_branding()
@@ -523,6 +537,9 @@ begin
   if v_days is not null then v_result := v_result || jsonb_build_object('days', v_days); end if;
   -- La fecha de trabajo ya no es un dato guardado: es el día operativo del servidor (get_business_date)
   v_result := v_result || jsonb_build_object('currentDate', get_business_date());
+  -- Cierre del autoservicio medido con el reloj del servidor: el portal pregunta aquí en vez de
+  -- mirar la hora del teléfono del cliente (esa se mueve a gusto y saltaba el corte de las 22:00).
+  v_result := v_result || jsonb_build_object('autoservicioCerrado', public._autoservicio_cerrado());
   return v_result;
 end;
 $$;
@@ -1040,6 +1057,9 @@ declare v_role text;
 begin
   select s.role into v_role from public._staff_session(p_token) s;
   if not public._staff_can_view(v_role, 'audit') then return; end if;
+  -- "audit" es bloqueable por plan: si el Super Admin lo bloquea, la pantalla no solo se oculta
+  -- en React, la RPC tampoco devuelve nada. Sin esta línea el candado era solo de escritura.
+  if public._plan_blocks('audit') then return; end if;
   return query select * from db_audit_log order by at desc limit least(coalesce(p_limit, 200), 2000);
 end; $$;
 revoke all on function public.staff_get_audit_log(text, int) from public;
@@ -1053,6 +1073,10 @@ declare v_role text;
 begin
   select s.role into v_role from public._staff_session(p_token) s;
   if not public._staff_can_view(v_role, 'audit') then return; end if;
+  -- Sin candado de plan a propósito: esta es LA lectura que usa el respaldo completo de
+  -- Configuración. Bloquearla por plan haría que un cliente con "audit" bloqueado exportara un
+  -- respaldo sin historial y, al restaurarlo, perdiera filas. La pantalla de Auditoría lee con
+  -- staff_get_audit_log (esa sí bloqueada) y su botón "ver todo" usa el mismo camino.
   if p_since is null then
     return query select * from db_audit_log order by at desc;
   else
@@ -1296,6 +1320,11 @@ begin
            or (jsonb_typeof(v_val) = 'string' and (v_val #>> '{}') !~ '^(\d{4}-\d{2}-\d{2})?$') then
           raise exception 'Fecha inválida.';
         end if;
+        -- El autoservicio se corta a las 22:00 de la empresa. Antes eso solo se ocultaba en el…
+        -- portal (con la hora del teléfono), así que se saltaba moviendo la relojera del aparato.
+        if jsonb_typeof(v_val) = 'string' and (v_val #>> '{}') <> '' and public._autoservicio_cerrado() then
+          raise exception 'Ya pasó el horario de autoservicio.';
+        end if;
 
       elsif v_key = 'status' then
         if jsonb_typeof(v_val) <> 'string' or not ((v_val #>> '{}') in ('Programado','Pausado','Activo')) then
@@ -1431,7 +1460,6 @@ set search_path = public, extensions
 as $$
 declare
   v_row db_clientes_rows%rowtype;
-  v_now_local timestamptz := now() at time zone get_company_timezone();
   v_addr_exists boolean;
   v_overrides jsonb;
   v_today date := get_server_date()::date;
@@ -1445,8 +1473,8 @@ begin
     raise exception 'Fecha fuera de rango.';
   end if;
 
-  if extract(hour from v_now_local) >= 22 then
-    raise exception 'Ya pasó el horario para cambiar la dirección (22:00 hora local).';
+  if public._autoservicio_cerrado() then
+    raise exception 'Ya pasó el horario de autoservicio.';
   end if;
 
   select * into v_row from db_clientes_rows where id = p_client_id;
@@ -1961,6 +1989,10 @@ declare v_role text;
 begin
   select s.role into v_role from public._staff_session(p_token) s;
   if not public._staff_can_view(v_role, 'notes') then return; end if;
+  -- Los comprobantes son datos financieros y viven dentro de la página "notes": sin esta línea,
+  -- un admin de plan Básico podía llamar la RPC directo y leerlos todos aunque la pantalla esté
+  -- bloqueada. La escritura ya pasa por _require_permission('notes'), que sí consulta el plan.
+  if public._plan_blocks('notes') then return; end if;
   return query select r.id, r.payload, r.updated_at from db_comprobantes_rows r order by r.updated_at desc;
 end;
 $$;
@@ -3051,7 +3083,7 @@ grant execute on function public.staff_get_ratings(text) to anon, authenticated;
 -- 'settings' de db_personal la sobreescribe POR COMPLETO el panel en cada guardado
 -- (rama 'personal' del guardado: payload = excluded.payload), así que ahí la marca
 -- desaparecería al primer guardado. Es lo único que escribe este bloque y no toca
--- ninguna fila de datos de la app. El literal '1.24' debe coincidir con el del
+-- ninguna fila de datos de la app. El literal '1.26' debe coincidir con el del
 -- encabezado "-- version de esquema" al inicio del archivo.
 -- ============================================================================
 
@@ -3069,7 +3101,7 @@ create policy "no direct access app_version" on public.db_app_version for all us
 
 -- Dejar sentada la versión de esquema recién instalada; la tabla es el registro, no datos de la app.
 insert into public.db_app_version (id, payload)
-  values ('main', jsonb_build_object('esquema', '1.24', 'setup', 'supabase-setup-inshape.sql'))
+  values ('main', jsonb_build_object('esquema', '1.26', 'setup', 'supabase-setup-inshape.sql'))
   on conflict (id) do update set payload = excluded.payload, updated_at = now();
 
 -- Lectura del registro. SECURITY DEFINER porque la tabla está cerrada por RLS; el barrido de
