@@ -46,6 +46,7 @@ const PROTEGIDOS_EXACTOS = new Set([
   'claves.txt', // secretos sueltos del dueño
   '.sincronizado.json', // estado del difusor (por las dudas: solo vive en el maestro)
   'CAMBIOS.md', // changelog de trabajo: solo tiene sentido en el maestro, decisión del dueño (2026-09-27)
+  'scripts/panel.mjs', // el menú del dueño: lee install/empresas.json, que no existe en la copia del cliente
 ]);
 const PROTEGIDOS_PREFIJOS = [
   'public/icons/', // logos/íconos generados por la empresa, no por el código
