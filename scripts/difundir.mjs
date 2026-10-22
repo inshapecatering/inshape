@@ -55,12 +55,8 @@ const PROTEGIDOS_CONTIENE = [
   'node_modules', 'dist', '.git', '.vercel', // carpetas de build/dependencias/historial: fuera de la difusión
   '.temp', // estado del CLI de Supabase (cli-latest, linked-project.json): no es código del proyecto
 ];
-const PROTEGIDOS_EXTENSIONES = ['.rar', '.zip'];
-
-// Rutas que solo tienen sentido en el maestro, sin importar en qué subcarpeta estén escritas.
-// `panel-catering.bat` necesita leer install/empresas.json, que es exclusivo del maestro:
-// copiado a una carpeta de cliente daría error.
-const PROTEGIDOS_NOMBRE = new Set(['panel-catering.bat']);
+const PROTEGIDOS_EXTENSIONES = ['.rar', '.zip', '.bat'];
+// .bat = herramientas de la PC del dueño (panel, git por carpeta): no van a la copia del cliente.
 
 // Devuelve true si la ruta (relativa al árbol de la app, con barras) no debe tocarse.
 // Cualquier ruta absoluta o que salga del árbol también se considera protegida: el
@@ -72,7 +68,6 @@ function estaProtegido(ruta) {
   if (PROTEGIDOS_PREFIJOS.some((p) => r.startsWith(p))) return true;
   if (PROTEGIDOS_CONTIENE.some((p) => r.split('/').includes(p))) return true;
   if (PROTEGIDOS_EXTENSIONES.some((e) => r.endsWith(e))) return true;
-  if (PROTEGIDOS_NOMBRE.has(r.split('/').pop())) return true;
   if (r.startsWith('.env') || r.includes('/.env')) return true; // cualquier .env* es secreto
   // Todo install/*.sql y todo *.local.json (secretos VAPID de nueva-empresa.mjs) es de la empresa:
   // el SQL de una base ya instalada no se reemplaza por accidente, se regenera a conciencia.
