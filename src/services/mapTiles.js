@@ -8,10 +8,10 @@
 //    el mapa antes).
 //
 // 2) Cadena de teselas raster con reintento automático entre varios proveedores (CARTO → Esri
-//    → OpenStreetMap). Se usa en dos sitios: como respaldo TOTAL si no hay archivo propio, y
-//    como overlay en el zoom profundo (por encima del maxZoom real del .pmtiles, que hoy es z14,
-//    porque protomaps-leaflet deja el lienzo vacío al pedir más). Si un proveedor empieza a
-//    fallar (403, caída, saturación), la capa salta sola al siguiente sin recargar la página.
+//    → OpenStreetMap). Se usa SOLO como respaldo total: cuando la empresa no tiene archivo propio,
+//    o el archivo no sirve (no se subió, el Range/CORS falla, no cubre el centro de la ciudad). Si un
+//    proveedor falla (403, caída, colgado), la capa salta sola al siguiente sin recargar la página.
+//    El zoom profundo ya no necesita proveedor ajeno: el archivo propio se amplía (maxDataZoom).
 //
 // Ningún proveedor exige tocar la CSP: `img-src ... https:` ya autoriza a todos.
 import config from './config';
@@ -23,7 +23,6 @@ const RASTER_PROVIDERS = [
   {
     url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     subdomains: 'abcd',
-    retina: true, // sirve @2x sin API key: nitidez en pantallas con escala (Windows 125/150%)
     attribution: `${OSM_ATTRIBUTION} &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>`,
   },
   {
@@ -31,20 +30,19 @@ const RASTER_PROVIDERS = [
     // Ojo al orden {z}/{y}/{x} (ArcGIS lo usa al revés que XYZ).
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
     subdomains: '',
-    retina: false,
     attribution: `${OSM_ATTRIBUTION} &copy; Esri, Maxar, Earthstar Geographics`,
   },
   {
     // Último recurso. tile.openstreetmap.org crudo bloquea (403) con uso continuo, así que solo
     // se usa si CARTO y Esri también cayeron.
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    subdomains: 'abc',
-    retina: false,
+    subdomains: 'abc', // OSM solo tiene a/b/c: con 'abcd' una de cada cuatro teselas iba a un host que no existe
     attribution: OSM_ATTRIBUTION,
   },
 ];
 
 const ERRORS_TO_SWITCH = 4; // tras esta cantidad de teselas falladas seguidas, se cambia de proveedor
+const STALL_MS = 7000; // si en este tiempo no cargó NI UNA tesela del proveedor actual, se pasa al siguiente
 
 // Dónde viven los archivos. Por defecto, el bucket público "maps" del Supabase de esta empresa;
 // se puede cambiar con `mapTilesBaseUrl` en public/config.js (p. ej. para usar un CDN).
@@ -58,104 +56,84 @@ export function mapFileUrl(cityId) {
   return `${mapTilesBaseUrl()}${encodeURIComponent(cityId)}.pmtiles`;
 }
 
-// Crea una capa raster que arranca en el proveedor 0 y, si acumula fallos, avanza por la cadena
-// sola (setUrl) hasta el último. Cualquier tesela que carga reinicia el contador. Nunca lanza.
-function rasterLayer(L, extra = {}) {
-  let idx = 0;
-  let consecutiveErrors = 0;
-  const first = RASTER_PROVIDERS[0];
-  const layer = L.tileLayer(first.url, {
-    maxZoom: 19,
-    subdomains: first.subdomains || 'abcd',
-    detectRetina: !!first.retina,
-    attribution: first.attribution,
-    ...extra,
-  });
+// Cadena raster con reintento automático entre proveedores. Devuelve un LayerGroup que contiene UNA
+// capa a la vez: al fallar, se reemplaza por una capa NUEVA del siguiente proveedor (antes se
+// cambiaba la URL con setUrl, que no redibujaba ni actualizaba los subdominios, y el mapa seguía
+// gris hasta mover el mapa). `{r}` ya lo rellena Leaflet con "@2x" en pantallas de alta densidad,
+// por eso NO se usa detectRetina (pedía teselas @2x de un zoom más: 4 veces los datos para nada).
+function rasterLayer(L) {
+  const group = L.layerGroup();
+  let state = null;
+  let timer = null;
 
-  const switchTo = (nextIdx) => {
-    const p = RASTER_PROVIDERS[nextIdx];
-    idx = nextIdx;
-    consecutiveErrors = 0;
-    // setUrl re-pide todas las teselas visibles con el nuevo proveedor.
-    layer.setUrl(p.url, { subdomains: p.subdomains || 'abcd', detectRetina: !!p.retina, attribution: p.attribution });
-    console.info(`[mapa] Proveedor de teselas caído; se pasa al #${nextIdx + 1} (${p.url.split('/')[2]}).`);
+  const next = () => {
+    if (state.idx >= RASTER_PROVIDERS.length - 1) return;
+    console.info(`[mapa] Proveedor de teselas sin respuesta; se pasa al #${state.idx + 2} (${RASTER_PROVIDERS[state.idx + 1].url.split('/')[2]}).`);
+    start(state.idx + 1);
   };
 
-  layer.on('tileerror', () => {
-    consecutiveErrors += 1;
-    if (consecutiveErrors >= ERRORS_TO_SWITCH && idx < RASTER_PROVIDERS.length - 1) switchTo(idx + 1);
-  });
-  layer.on('tileload', () => { consecutiveErrors = 0; });
+  const start = (idx) => {
+    clearTimeout(timer);
+    const st = { idx, loaded: 0, errors: 0 };
+    state = st;
+    const p = RASTER_PROVIDERS[idx];
+    const layer = L.tileLayer(p.url, { maxZoom: 19, subdomains: p.subdomains || 'abc', attribution: p.attribution });
+    layer.on('tileload', () => { if (st !== state) return; st.loaded += 1; st.errors = 0; clearTimeout(timer); });
+    layer.on('tileerror', () => { if (st !== state) return; st.errors += 1; if (st.errors >= ERRORS_TO_SWITCH) next(); });
+    group.clearLayers();
+    group.addLayer(layer);
+    // Un proveedor que no responde (colgado, bloqueado por red) no genera errores: se detecta por silencio.
+    if (idx < RASTER_PROVIDERS.length - 1) timer = setTimeout(() => { if (st === state && !st.loaded) next(); }, STALL_MS);
+  };
 
-  return layer;
+  start(0);
+  group.on('remove', () => clearTimeout(timer));
+  return group;
 }
 
-// Devuelve { layer, source, maxNativeZoom }: source es 'pmtiles' o 'raster'. Nunca lanza: ante
-// cualquier problema con el archivo propio cae a la cadena raster. Si se le pasa `map` y el fondo
-// es propio, además enlaza el overlay raster para el zoom que el archivo no cubre.
-export async function createBaseLayer(L, city, language = 'es', map) {
+// Tesela (x, y) que contiene un punto en el zoom z (esquema XYZ estándar).
+function tileFor(lat, lng, z) {
+  const n = 2 ** z;
+  const x = Math.floor(((lng + 180) / 360) * n);
+  const rad = (lat * Math.PI) / 180;
+  const y = Math.floor(((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * n);
+  return { x, y };
+}
+
+// Comprueba que el archivo propio de verdad sirve datos del centro de la ciudad (que el Range/CORS
+// funciona y que el recorte no quedó en otro lado). protomaps-leaflet NO avisa cuando una tesela
+// falla: solo pinta el fondo, y eso es justo el "mapa gris". Si esto lanza, se usa la cadena raster.
+async function probeArchive(archive, city, header) {
+  const z = Math.max(Number(header.minZoom) || 0, Math.min(Number(header.maxZoom) || 14, 12));
+  const { x, y } = tileFor(city.lat, city.lng, z);
+  const tile = await archive.getZxy(z, x, y);
+  if (!tile?.data) throw new Error(`el archivo no trae datos del centro de la ciudad (z${z})`);
+}
+
+// Devuelve { layer, source }: source es 'pmtiles' o 'raster'. Nunca lanza: ante cualquier problema
+// con el archivo propio cae a la cadena raster.
+export async function createBaseLayer(L, city, language = 'es') {
   if (city?.id) {
     try {
       const [{ PMTiles }, { leafletLayer }] = await Promise.all([import('pmtiles'), import('protomaps-leaflet')]);
       const archive = new PMTiles(mapFileUrl(city.id));
       const header = await archive.getHeader(); // falla (404, sin red…) si el archivo de esa ciudad no está subido
-      const dataMaxZoom = Number(header.maxZoom) || 14;
+      await probeArchive(archive, city, header);
       const layer = leafletLayer({
         url: archive,
         flavor: 'light',
         lang: ['es', 'en', 'pt'].includes(language) ? language : 'en',
         attribution: OSM_ATTRIBUTION,
-        // El fondo se ofrece hasta el zoom alto del mapa: el archivo solo pinta hasta su maxZoom real
-        // (z14) y por encima queda vacío. NO poner maxZoom=dataMaxZoom aquí, o Leaflet caparía el mapa
-        // entero a ese zoom y no se podría acercar. Por encima de dataMaxZoom entra el overlay raster.
+        // El archivo llega a su maxZoom real (z14 para una ciudad); protomaps-leaflet asume z15 si no
+        // se le dice, y desde ahí pintaba solo el fondo gris (justo el zoom con que abre una ruta).
+        // Con maxDataZoom amplía el último nivel con datos, así que no hace falta ningún mapa ajeno.
+        maxDataZoom: Number(header.maxZoom) || 14,
         maxZoom: 19,
       });
-      if (map) {
-        attachDeepZoomOverlay(L, map, dataMaxZoom);
-        attachPmtilesFailsafe(L, map, layer);
-      }
-      return { layer, source: 'pmtiles', maxNativeZoom: dataMaxZoom };
+      return { layer, source: 'pmtiles' };
     } catch (err) {
-      console.info(`[mapa] Sin archivo de mapa propio para "${city.id}" (${err?.message || err}); se usa la cadena raster.`);
+      console.info(`[mapa] Sin archivo de mapa propio utilizable para "${city.id}" (${err?.message || err}); se usa la cadena raster.`);
     }
   }
-  return { layer: rasterLayer(L), source: 'raster', maxNativeZoom: 19 };
-}
-
-// Superpone la cadena raster solo cuando el zoom supera lo que el archivo propio alcanza, y la
-// quita al volver a salir de ese rango. El overlay vive en el tilePane, por encima del fondo propio
-// (se añade después); los marcadores/línea de ruta siguen viéndose porque usan otro pane.
-function attachDeepZoomOverlay(L, map, dataMaxZoom) {
-  let overlay = null;
-  const sync = () => {
-    const needDeep = map.getZoom() > dataMaxZoom;
-    if (needDeep && !overlay) {
-      overlay = rasterLayer(L, { minZoom: dataMaxZoom + 1 });
-      map.addLayer(overlay);
-    } else if (!needDeep && overlay) {
-      map.removeLayer(overlay);
-      overlay = null;
-    }
-  };
-  map.on('zoomend', sync);
-  sync();
-}
-
-// Red de seguridad del archivo propio: si el encabezado cargó pero las teselas no se pintan (archivo
-// dañado, Range/CORS bloqueado, versión incompatible), el lienzo quedaba gris sin respaldo porque
-// `createBaseLayer` ya había elegido 'pmtiles'. Tras varios fallos SIN ninguna tesela buena, se
-// quita la capa propia y entra la cadena raster.
-function attachPmtilesFailsafe(L, map, layer) {
-  let errors = 0;
-  let loaded = 0;
-  layer.on('tileload', () => { loaded += 1; });
-  layer.on('tileerror', () => {
-    errors += 1;
-    if (loaded === 0 && errors >= ERRORS_TO_SWITCH) {
-      layer.off('tileerror');
-      map.removeLayer(layer);
-      map.addLayer(rasterLayer(L));
-      console.info('[mapa] El archivo propio no pintó teselas; se usa la cadena raster.');
-    }
-  });
+  return { layer: rasterLayer(L), source: 'raster' };
 }
